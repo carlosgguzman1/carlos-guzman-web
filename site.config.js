@@ -210,19 +210,19 @@ const config = {
   preciosWeb: [
     {
       t: 'Esencial', sub: 'Una página que convierte',
-      amt: '$750', then: '+ $45 / mes de mantenimiento',
+      amt: '$500', then: '+ $30 / mes de mantenimiento',
       li: ['Una página completa', 'Botones directos a WhatsApp', 'Formulario de contacto', 'Optimizada para celular', 'Google Business Profile configurado', 'Entrega en 7 días'],
       cta: 'Empezar', waKey: 'web', style: 'ghost',
     },
     {
       t: 'Profesional', sub: 'La práctica completa en línea',
-      amt: '$1,500', then: '+ $75 / mes de mantenimiento',
+      amt: '$750', then: '+ $50 / mes de mantenimiento',
       li: ['Hasta 5 páginas', 'Página por servicio o tratamiento', 'Galería de antes y después', 'Sistema de citas conectado', 'SEO local para tu pueblo', 'Fotografía profesional coordinada', 'Entrega en 10 días'],
       cta: 'Empezar', waKey: 'web', style: 'wa', hi: true,
     },
     {
       t: 'Práctica + IA', sub: 'La web y el teléfono resueltos',
-      amt: '$2,800', then: '+ $250 / mes todo incluido',
+      amt: '$1,200', then: '+ $250 / mes todo incluido',
       li: ['Todo lo del plan Profesional', 'Agente de voz que contesta tu teléfono', 'Recordatorios de cita automáticos', 'Panel de pacientes interesados', 'Seguimiento automático por WhatsApp', 'Soporte prioritario'],
       cta: 'Conversemos', waKey: 'web', style: 'ghost',
     },
