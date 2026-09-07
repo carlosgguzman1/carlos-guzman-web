@@ -1,0 +1,2 @@
+Bloque `cliente` que el generador inserta en site.config.js.
+Todo esto se edita después con la información real del cliente.

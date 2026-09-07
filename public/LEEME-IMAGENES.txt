@@ -1,0 +1,15 @@
+IMÁGENES DEL SITIO
+==================
+
+Los dos archivos que están aquí son PLACEHOLDERS. El sitio funciona con
+ellos, pero sustitúyelos por los reales lo antes posible.
+
+1. carlos.jpg      800 x 1000 px (vertical 4:5)
+   Tu foto profesional. Aparece en Inicio y en Sobre mí.
+   Es la señal de credibilidad #1 para venderle a médicos y farmacéuticos.
+
+2. portada.jpg     1200 x 630 px (horizontal)
+   Lo que se ve cuando compartes el link en WhatsApp, Facebook o LinkedIn.
+
+Mantén los mismos nombres de archivo y no hay que tocar código.
+Comprime en tinypng.com antes de subirlas.
