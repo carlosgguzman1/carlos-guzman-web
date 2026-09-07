@@ -1,23 +1,69 @@
-import { Fraunces, IBM_Plex_Sans, IBM_Plex_Mono } from 'next/font/google';
+/* ══════════════════════════════════════════════════════════════════
+   TIPOGRAFÍA — tres opciones profesionales.
+   La activa es la de abajo. Para cambiar: comenta la que está activa
+   y descomenta la que quieras. Nada más hay que tocar.
+
+   A · CLÍNICA MODERNA (activa) — Instrument Sans + Inter
+       Limpia y actual. Es lo que usan Hims, Ro y One Medical.
+       Para: farmacia, telemedicina, med spa, práctica joven.
+
+   B · EDITORIAL — Source Serif 4 + Inter
+       Serif refinada, sin curvas raras. Autoridad establecida.
+       Para: especialistas, cirugía, práctica con trayectoria.
+
+   C · INSTITUCIONAL — Libre Franklin + Open Sans
+       El estándar de hospitales. Máxima familiaridad.
+       Para: clínicas grandes, laboratorios, grupos médicos.
+   ══════════════════════════════════════════════════════════════════ */
+
+// ── A · CLÍNICA MODERNA (activa) ──
+import { Instrument_Sans, Inter, IBM_Plex_Mono } from 'next/font/google';
+
+// ── B · EDITORIAL ──
+// import { Source_Serif_4, Inter, IBM_Plex_Mono } from 'next/font/google';
+
+// ── C · INSTITUCIONAL ──
+// import { Libre_Franklin, Open_Sans, IBM_Plex_Mono } from 'next/font/google';
 import config, { T } from '@/site.config';
 import Nav from '@/components/Nav';
 import Footer from '@/components/Footer';
 import FloatWA from '@/components/FloatWA';
 import './globals.css';
 
-const display = Fraunces({
+// ── A · CLÍNICA MODERNA (activa) ──
+const display = Instrument_Sans({
   subsets: ['latin'],
-  weight: ['400', '500', '600'],
+  weight: ['500', '600', '700'],
   variable: '--font-display',
   display: 'swap',
 });
 
-const body = IBM_Plex_Sans({
+const body = Inter({
   subsets: ['latin'],
   weight: ['400', '500', '600'],
   variable: '--font-body',
   display: 'swap',
 });
+
+// ── B · EDITORIAL ──
+// const display = Source_Serif_4({
+//   subsets: ['latin'], weight: ['500', '600', '700'],
+//   variable: '--font-display', display: 'swap',
+// });
+// const body = Inter({
+//   subsets: ['latin'], weight: ['400', '500', '600'],
+//   variable: '--font-body', display: 'swap',
+// });
+
+// ── C · INSTITUCIONAL ──
+// const display = Libre_Franklin({
+//   subsets: ['latin'], weight: ['500', '600', '700'],
+//   variable: '--font-display', display: 'swap',
+// });
+// const body = Open_Sans({
+//   subsets: ['latin'], weight: ['400', '500', '600'],
+//   variable: '--font-body', display: 'swap',
+// });
 
 const mono = IBM_Plex_Mono({
   subsets: ['latin'],

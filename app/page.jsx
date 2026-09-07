@@ -16,7 +16,7 @@ export default function Home() {
       <section className="hero">
         <div className="wrap hero-grid">
           <div>
-            <Ficha>Aguadilla, Puerto Rico · PharmD</Ficha>
+            <Ficha>San Juan, Puerto Rico · PharmD</Ficha>
             <h1>
               La farmacia del futuro necesita <em className="hl">criterio farmacéutico</em>,
               no solo tecnología.
@@ -37,9 +37,9 @@ export default function Home() {
           </div>
 
           <Portrait
-            alt="Carlos Guzmán, PharmD, farmacéutico de compounding en Aguadilla, Puerto Rico"
+            alt="Carlos Guzmán, PharmD, farmacéutico de compounding en San Juan, Puerto Rico"
             capLeft="PharmD · Compounding 503A"
-            capRight="Aguadilla, PR"
+            capRight="San Juan, PR"
           />
         </div>
       </section>

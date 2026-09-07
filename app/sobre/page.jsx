@@ -10,7 +10,7 @@ const { wa, brand, contact } = config;
 export const metadata = {
   title: 'Sobre mí — Farmacéutico de compounding y desarrollador',
   description:
-    'Doctor en Farmacia, farmacéutico de compounding 503A en Aguadilla y constructor de sistemas de IA para farmacias. Práctica clínica y código el mismo día.',
+    'Doctor en Farmacia egresado del Recinto de Ciencias Médicas de la UPR, farmacéutico de compounding 503A en San Juan y constructor de sistemas de IA para farmacias. Práctica clínica y código el mismo día.',
   alternates: { canonical: '/sobre' },
   openGraph: { title: 'El farmacéutico que también escribe el código.' },
 };
@@ -34,7 +34,7 @@ export default function Sobre() {
             </div>
           </div>
           <Portrait
-            alt="Carlos Guzmán, PharmD, en su farmacia de compounding en Aguadilla, Puerto Rico"
+            alt="Carlos Guzmán, PharmD, farmacéutico de compounding en San Juan, Puerto Rico"
             capLeft={contact.city}
             capRight="PharmD"
           />
@@ -47,8 +47,9 @@ export default function Sobre() {
             <div>
               <Ficha>Ficha profesional</Ficha>
               <ul className="fields">
-                <li><b>Formación</b><span>Doctor en Farmacia (PharmD)</span></li>
-                <li><b>Práctica</b><span>Farmacéutico de compounding 503A, estéril y no estéril</span></li>
+                <li><b>Formación</b><span>Doctor en Farmacia (PharmD) — Recinto de Ciencias Médicas, Universidad de Puerto Rico</span></li>
+                <li><b>Licencia</b><span>Farmacéutico licenciado en Puerto Rico</span></li>
+                <li><b>Práctica</b><span>Compounding 503A, estéril y no estéril</span></li>
                 <li><b>Base</b><span>{contact.city} · servicio a toda la isla</span></li>
                 <li><b>Clínico</b><span>Péptidos, terapia hormonal, GLP-1, NAD+ e IV</span></li>
                 <li><b>Técnico</b><span>Agentes de voz con IA, automatización y desarrollo de software</span></li>
@@ -60,15 +61,16 @@ export default function Sobre() {
             <div className="prose">
               <Ficha>La historia corta</Ficha>
               <p className="lead">
-                Empecé a programar porque necesitaba resolver un problema que tenía enfrente
-                y nadie me estaba vendiendo la solución correcta.
+                Me formé como farmacéutico en el Recinto de Ciencias Médicas de la Universidad
+                de Puerto Rico, y empecé a programar porque necesitaba resolver un problema que
+                tenía enfrente y nadie me estaba vendiendo la solución correcta.
               </p>
               <p>
                 Trabajando en compounding me di cuenta de algo simple: las herramientas que le
                 venden a las farmacias las diseña gente que nunca vio la operación por dentro.
                 Pantallas que piden datos que nadie tiene a mano. Flujos que asumen que hay tres
                 personas libres. Software traducido del inglés por alguien que nunca oyó cómo
-                pide un refill una señora de Aguadilla.
+                pide un refill una señora en San Juan.
               </p>
               <p>
                 Así que empecé a construir lo que me hacía falta. Primero para mi propia operación:
