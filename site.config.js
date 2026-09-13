@@ -60,7 +60,7 @@ const config = {
     initials: 'CG',
     role: 'Doctor en Farmacia',
     legalEntity: 'GA RX Consulting',
-    domain: 'https://carlosguzmanpharmd.com',
+    domain: 'https://carlosguzmanai.com',
     locale: 'es_PR',
     lang: 'es',
   },
