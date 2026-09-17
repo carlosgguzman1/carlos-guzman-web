@@ -122,7 +122,7 @@ strong,b{font-weight:600}
 
 /* ── Retrato ──────────────────────────────────────────────── */
 .portrait{background:var(--white);border:1px solid var(--line);border-radius:var(--radius);overflow:hidden;box-shadow:0 24px 54px -34px rgba(0,0,0,.42)}
-.portrait-img{width:100%;height:430px;object-fit:cover;object-position:50% 30%;display:block;background:var(--paper2)}
+.portrait-img{width:100%;height:430px;object-fit:cover;object-position:50% 20%;display:block;background:var(--paper2)}
 .portrait-fallback{
   aspect-ratio:1/1;background:linear-gradient(165deg,var(--soft),var(--paper2));
   display:flex;flex-direction:column;justify-content:center;align-items:center;gap:10px;padding:30px;text-align:center;
