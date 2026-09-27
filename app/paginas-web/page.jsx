@@ -5,7 +5,7 @@ import Reveal from '@/components/Reveal';
 import WAButton from '@/components/WAButton';
 import FAQ from '@/components/FAQ';
 
-const { wa, brand, preciosWeb, nichos } = config;
+const { wa, brand, preciosWeb, nichos, promoWeb, garantia, portafolio } = config;
 
 export const metadata = {
   title: 'Páginas web para médicos, estéticas y clínicas en Puerto Rico',
@@ -56,6 +56,11 @@ export default function PaginasWeb() {
             Tu paciente compara tres páginas antes de llamar a nadie. Construyo la que hace
             que te escoja a ti — clara, rápida, en español, y con el botón de WhatsApp donde
             tiene que estar.
+          </p>
+          <p className="autoejemplo">
+            <b>Esta página que estás viendo la hice yo.</b> Es el mismo sistema, la misma
+            velocidad de entrega y el mismo cuidado que le pongo al trabajo de mis clientes —
+            no es una plantilla genérica que le vendo a todo el mundo.
           </p>
           <div className="btn-row">
             <WAButton msg={wa.web}>Cotizar mi página</WAButton>
@@ -146,11 +151,43 @@ export default function PaginasWeb() {
         </div>
       </section>
 
-      {/* ── NICHOS ── */}
-      <section className="sec">
+      {/* ── TRABAJO RECIENTE ── */}
+      <section className="sec" id="trabajo">
         <div className="wrap">
           <Reveal className="sec-head narrow">
-            <Ficha>Ficha 03 — Para quién</Ficha>
+            <Ficha>Ficha 03 — Trabajo reciente</Ficha>
+            <h2>Lo último que he construido.</h2>
+            <p className="lead">
+              Estoy arrancando este servicio, así que este portafolio va a crecer rápido.
+              Aquí lo que tengo publicado ahora mismo.
+            </p>
+          </Reveal>
+          <Reveal className="grid-3">
+            {portafolio.map((pz) => (
+              <div className="card-plain" key={pz.t}>
+                <h3>{pz.t}</h3>
+                <p>{pz.d}</p>
+                {pz.url && !pz.url.startsWith('PONER_') && (
+                  <a
+                    href={pz.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    style={{ display: 'inline-block', marginTop: '10px', fontSize: '.88rem', fontWeight: 600, color: 'var(--primary)' }}
+                  >
+                    Verla →
+                  </a>
+                )}
+              </div>
+            ))}
+          </Reveal>
+        </div>
+      </section>
+
+      {/* ── NICHOS ── */}
+      <section className="sec sec-alt">
+        <div className="wrap">
+          <Reveal className="sec-head narrow">
+            <Ficha>Ficha 04 — Para quién</Ficha>
             <h2>Trabajo con profesionales de la salud.</h2>
             <p className="lead">
               No hago páginas de restaurantes ni de bienes raíces. Me especializo aquí porque
@@ -172,7 +209,7 @@ export default function PaginasWeb() {
       <section className="sec sec-dark">
         <div className="wrap">
           <Reveal className="sec-head narrow">
-            <Ficha pale>Ficha 04 — Por qué yo</Ficha>
+            <Ficha pale>Ficha 05 — Por qué yo</Ficha>
             <h2>Un diseñador te hace algo bonito. Yo entiendo a tu paciente.</h2>
           </Reveal>
           <Reveal className="grid-2" style={{ gap: 'clamp(20px,3vw,32px)' }}>
@@ -198,7 +235,7 @@ export default function PaginasWeb() {
       <section className="sec">
         <div className="wrap">
           <Reveal className="sec-head narrow">
-            <Ficha>Ficha 05 — Cómo trabajamos</Ficha>
+            <Ficha>Ficha 06 — Cómo trabajamos</Ficha>
             <h2>Cuatro pasos y estás en línea.</h2>
           </Reveal>
           <Reveal className="steps">
@@ -230,7 +267,7 @@ export default function PaginasWeb() {
       <section className="sec sec-alt" id="planes">
         <div className="wrap">
           <Reveal className="sec-head narrow">
-            <Ficha>Ficha 06 — Planes</Ficha>
+            <Ficha>Ficha 07 — Planes</Ficha>
             <h2>Precios claros, sin cotizaciones misteriosas.</h2>
             <p className="lead">
               Escoges el plan, pagas la mitad para empezar y la otra mitad al publicar.
@@ -238,12 +275,24 @@ export default function PaginasWeb() {
             </p>
           </Reveal>
 
+          {promoWeb.activa && (
+            <Reveal className="promo">
+              <span className="promo-tag">{promoWeb.etiqueta}</span>
+              <h3>{promoWeb.titulo}</h3>
+              <p>{promoWeb.texto}</p>
+              <span className="promo-nota">{promoWeb.nota}</span>
+            </Reveal>
+          )}
+
           <Reveal className="price-grid">
             {preciosWeb.map((p) => (
               <div className={`price ${p.hi ? 'hi' : ''}`} key={p.t}>
                 <h3>{p.t}</h3>
                 <p className="price-sub">{p.sub}</p>
-                <div className="price-amt">{p.amt}</div>
+                <div className="price-amt">
+                  {p.amt}
+                  {promoWeb.activa && p.antes && <span className="price-antes">{p.antes}</span>}
+                </div>
                 <div className="price-then">{p.then}</div>
                 <ul>{p.li.map((l) => <li key={l}>{l}</li>)}</ul>
                 <WAButton
@@ -262,6 +311,21 @@ export default function PaginasWeb() {
             <br />
             La página es tuya. Si algún día quieres irte con otro, te la llevas.
           </p>
+
+          <section className="sec-sm" style={{ paddingTop: 'clamp(28px,4vw,44px)' }}>
+            <div className="garantia">
+              <div className="garantia-icono">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M12 2L4 5V11C4 16.55 7.16 21.74 12 23C16.84 21.74 20 16.55 20 11V5L12 2Z" stroke="currentColor" strokeWidth="1.6" strokeLinejoin="round"/>
+                  <path d="M9 12L11 14L15 10" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+              </div>
+              <div>
+                <h3>{garantia.titulo}</h3>
+                <p>{garantia.texto}</p>
+              </div>
+            </div>
+          </section>
         </div>
       </section>
 
