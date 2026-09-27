@@ -203,26 +203,71 @@ const config = {
     },
   ],
 
+  /* ── Promoción de lanzamiento (páginas web) ───────────────────────
+     Actívala/desactívala con `activa`. Apágala cuando ya tengas
+     los primeros 3 clientes al precio de lanzamiento.
+     ───────────────────────────────────────────────────────────────── */
+  promoWeb: {
+    activa: true,
+    etiqueta: 'Precio de lanzamiento',
+    titulo: 'Los primeros 3 clientes pagan precio de lanzamiento.',
+    texto: 'Estoy arrancando este servicio y quiero mis primeros casos reales en la isla. Los primeros tres clientes que confirmen pagan el precio de abajo — de ahí en adelante, precio regular.',
+    nota: 'Quedan cupos limitados al precio de lanzamiento.',
+  },
+
+  /* ── Garantía (páginas web) ──────────────────────────────────────
+     Reemplaza la falta de testimonios: quitas el riesgo de decidir.
+     ───────────────────────────────────────────────────────────────── */
+  garantia: {
+    titulo: 'No pagas el resto hasta verla.',
+    texto: 'Pagas la mitad para empezar. La otra mitad la pagas cuando ya viste la página terminada y estás conforme — no antes. Si no te gusta el resultado, no me pagas el balance y no hay compromiso de continuar.',
+  },
+
+  /* ── Trabajo reciente / portafolio (páginas web) ──────────────────
+     Reemplaza las URLs 'PONER_LINK_...' con el enlace real en cuanto
+     lo tengas. Mientras diga 'PONER_LINK_', la página no muestra el
+     enlace "Verla →" para esa tarjeta (para no linkear algo roto).
+     ───────────────────────────────────────────────────────────────── */
+  portafolio: [
+    {
+      t: 'Carlos Guzmán, PharmD',
+      d: 'Esta misma página que estás viendo — mi propia marca personal.',
+      url: 'https://carlosguzmanai.com',
+    },
+    {
+      t: 'ESSENCE',
+      d: 'Marca de ropa deportiva de mujer (gym/yoga) — presencia de marca y tienda.',
+      url: 'PONER_LINK_ESSENCE',
+    },
+    {
+      t: 'Dubai Chocolate',
+      d: 'Página de comercio por Instagram para un producto de tendencia.',
+      url: 'PONER_LINK_DUBAI',
+    },
+  ],
+
   /* ── Precios de páginas web ─────────────────────────────────────────
      AJUSTA ESTOS NÚMEROS a lo que decidas cobrar.
-     Son una propuesta de partida para el mercado de Puerto Rico.
+     `antes` es el precio regular (tachado); `amt` es el de lanzamiento.
+     Cuando apagues promoWeb.activa, puedes borrar `antes` o dejarlo,
+     no se muestra si promoWeb.activa es false.
      ───────────────────────────────────────────────────────────────── */
   preciosWeb: [
     {
       t: 'Esencial', sub: 'Una página que convierte',
-      amt: '$500', then: '+ $45 / mes de mantenimiento',
+      amt: '$350', antes: '$500', then: '+ $45 / mes de mantenimiento',
       li: ['Una página completa', 'Botones directos a WhatsApp', 'Formulario de contacto', 'Optimizada para celular', 'Google Business Profile configurado', 'Entrega en 7 días'],
       cta: 'Empezar', waKey: 'web', style: 'ghost',
     },
     {
       t: 'Profesional', sub: 'La práctica completa en línea',
-      amt: '$750', then: '+ $75 / mes de mantenimiento',
+      amt: '$500', antes: '$750', then: '+ $75 / mes de mantenimiento',
       li: ['Hasta 5 páginas', 'Página por servicio o tratamiento', 'Galería de antes y después', 'Sistema de citas conectado', 'SEO local para tu pueblo', 'Fotografía profesional coordinada', 'Entrega en 10 días'],
       cta: 'Empezar', waKey: 'web', style: 'wa', hi: true,
     },
     {
       t: 'Práctica + IA', sub: 'La web y el teléfono resueltos',
-      amt: '$1,200', then: '+ $300 / mes todo incluido',
+      amt: '$950', antes: '$1,200', then: '+ $300 / mes todo incluido',
       li: ['Todo lo del plan Profesional', 'Agente de voz que contesta tu teléfono', 'Recordatorios de cita automáticos', 'Panel de pacientes interesados', 'Seguimiento automático por WhatsApp', 'Soporte prioritario'],
       cta: 'Conversemos', waKey: 'web', style: 'ghost',
     },
