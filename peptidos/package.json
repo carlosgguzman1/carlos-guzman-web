@@ -1,0 +1,10 @@
+{
+  "name": "carlos-guzman-peptidos",
+  "version": "2.3.0",
+  "private": true,
+  "description": "Guía pública de péptidos de Carlos Guzmán. Solo para propósitos educativos.",
+  "scripts": {
+    "check": "node --check content.js && node --check app.js && node tests/content.test.mjs",
+    "build": "node scripts/prepare-deploy.mjs"
+  }
+}

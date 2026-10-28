@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://carlos-guzman-peptidos.carlitosgeral03.chatgpt.site/sitemap.xml
