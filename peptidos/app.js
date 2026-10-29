@@ -1,128 +1,228 @@
+(function(){
 'use strict';
-const DATA=JSON.parse(document.getElementById('peptide-data').textContent), PEPTIDES=DATA.peptides;
-const AREAS=['Cerebro y sueño','Piel y envejecimiento','Digestión y peso','Inmunidad y defensa','Hormonas y metabolismo','Huesos y músculos','Corazón y sangre','Salud sexual y reproducción'];
-const STATUS={approved:'Aprobación reportada*',trials:'En investigación clínica',experimental:'Experimental / bienestar',cosmetic:'Cosmético / tópico'};
-const EVIDENCE={'FDA approved':'Aprobación reportada*','Deep research':'Investigación extensa','Moderate research':'Investigación moderada','Low research':'Investigación limitada'};
-const FDA_RISK='https://www.fda.gov/drugs/human-drug-compounding/certain-bulk-drug-substances-use-compounding-may-present-significant-safety-risks';
-const FDA_GLP='https://www.fda.gov/drugs/drug-alerts-and-statements/fdas-concerns-unapproved-glp-1-drugs-used-weight-loss';
-const FDA_DRUGS='https://www.accessdata.fda.gov/scripts/cder/daf/';
-const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
-const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-const safeUrl=u=>{try{const p=new URL(u);return ['http:','https:'].includes(p.protocol)?esc(p.href):'#'}catch{return '#'}};
-const link=(url,label)=>`<a href="${safeUrl(url)}" target="_blank" rel="noopener noreferrer">${esc(label)} ↗</a>`;
-const norm=s=>String(s??'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();
-const IDS=new Set(PEPTIDES.map(p=>p.id));
-let state={area:null,status:'',q:'',evidence:'',mine:'',sort:'az',page:1,compared:[]},progress={favorites:[],reviewed:[],notes:{}};
-const storageKey='mia-peptide-academy-v1';
-let storageOk=true;
-function cleanProgress(v){if(!v||typeof v!=='object')throw Error('Formato inválido');return {favorites:Array.isArray(v.favorites)?[...new Set(v.favorites.filter(x=>IDS.has(x)))]:[],reviewed:Array.isArray(v.reviewed)?[...new Set(v.reviewed.filter(x=>IDS.has(x)))]:[],notes:Object.fromEntries(Object.entries(v.notes||{}).filter(([k,v])=>IDS.has(k)&&typeof v==='string').map(([k,v])=>[k,v.slice(0,10000)]))}}
-try{let stored=localStorage.getItem(storageKey);if(stored)progress=cleanProgress(JSON.parse(stored))}catch{storageOk=false}
-function save(){try{localStorage.setItem(storageKey,JSON.stringify(progress))}catch{storageOk=false;toast('El navegador no permite guardar. Exporta tu progreso antes de salir.')}updateProgress()}
-let toastTimer;
-function toast(t){$('#toast').textContent=t;$('#toast').hidden=false;clearTimeout(toastTimer);toastTimer=setTimeout(()=>$('#toast').hidden=true,3500)}
-function updateProgress(){$('#progressCount').textContent=progress.reviewed.length;}
-function toggle(list,id){progress[list]=progress[list].includes(id)?progress[list].filter(x=>x!==id):[...progress[list],id];save();render()}
-const get=id=>PEPTIDES.find(p=>p.id===id);
-function reset(){state={...state,area:null,status:'',q:'',evidence:'',mine:'',page:1};$('#search').value='';$('#evidence').value='';$('#myFilter').value='';render()}
-let figureZoom=1;
-function zoomFigure(value){figureZoom=Math.max(1,Math.min(1.6,value));$('#figureFrame').style.transform=`scale(${figureZoom})`;$('#zoomIn').disabled=figureZoom>=1.6;$('#zoomOut').disabled=figureZoom<=1;}
-function selectArea(i){state.area=state.area===i?null:i;state.page=1;state.q='';state.status='';state.evidence='';state.mine='';$('#search').value='';$('#evidence').value='';$('#myFilter').value='';render();}
+var P = window.PEPTIDOS || [];
+var AREAS = {
+  cerebro:{n:'Cerebro y sueño',s:'Cer',x:100,y:40},
+  hormonas:{n:'Hormonas y metabolismo',s:'Hor',x:68,y:100},
+  inmune:{n:'Inmune y defensa',s:'Inm',x:132,y:100},
+  corazon:{n:'Corazón y sangre',s:'Cor',x:100,y:135},
+  digestivo:{n:'Digestivo y peso',s:'Dig',x:100,y:182},
+  piel:{n:'Piel y envejecimiento',s:'Piel',x:162,y:196},
+  sexual:{n:'Sexual y reproductivo',s:'Sex',x:100,y:228},
+  huesos:{n:'Huesos y músculos',s:'Hue',x:80,y:318}
+};
+var CATS = {fda:{n:'FDA*',l:'Aprobación reportada*',c:'var(--fda)'},ensayos:{n:'Ensayos',l:'En ensayos clínicos',c:'var(--ens)'},wellness:{n:'Experimental',l:'Experimental / no aprobado',c:'var(--well)'},cosmetico:{n:'Cosmético',l:'Cosmético tópico',c:'var(--cos)'}};
+var EVS = {fda:{n:'Aprobación reportada*',lv:4},alta:{n:'Evidencia alta',lv:3},moderada:{n:'Evidencia moderada',lv:2},baja:{n:'Evidencia baja',lv:1}};
 
-function filtered(){return PEPTIDES.filter(p=>(state.area===null||p.area===state.area)&&(!state.status||p.status===state.status)&&(!state.q||norm(p.search_text+' '+AREAS[p.area]).includes(norm(state.q)))&&(!state.evidence||p.evidence_strength===state.evidence)&&(!state.mine||(state.mine==='priority'?p.priority:state.mine==='favorite'?progress.favorites.includes(p.id):state.mine==='reviewed'?progress.reviewed.includes(p.id):!progress.reviewed.includes(p.id)))).sort((a,b)=>state.sort==='za'?b.display_name.localeCompare(a.display_name):state.sort==='references'?b.citations.length-a.citations.length||a.display_name.localeCompare(b.display_name):state.sort==='priority'?Number(b.priority)-Number(a.priority)||a.display_name.localeCompare(b.display_name):a.display_name.localeCompare(b.display_name))}
-function badge(p){return `<span class="badge"><i class="dot ${p.status}"></i>${esc(STATUS[p.status])}</span>`}
-function render(){
- $('#systemButtons').innerHTML=AREAS.map((a,i)=>`<button class="system-button ${state.area===i?'active':''}" data-system="${i}" aria-pressed="${state.area===i}"><span class="idx">0${i+1}</span><span>${a}</span><span class="count">${PEPTIDES.filter(p=>p.area===i).length}</span></button>`).join('');
- $('#statusFilters').innerHTML=[['','Todos'],...Object.entries(STATUS)].map(([key,label])=>`<button class="filter ${state.status===key?'active':''}" data-status="${key}" aria-pressed="${state.status===key}">${key?`<i class="dot ${key}"></i>`:''}${label} <span>${key?PEPTIDES.filter(p=>p.status===key).length:152}</span></button>`).join('');
- $('#mapArea').textContent=state.area===null?'Todos los sistemas':AREAS[state.area];
- $$('[data-body-system]').forEach(el=>{const active=Number(el.dataset.bodySystem)===state.area;el.classList.toggle('active',active);el.setAttribute('aria-pressed',String(active))});
- const scroller=$('.card-scroll');if(scroller)scroller.scrollTop=0;
- $$('.map-nodes g').forEach(el=>{el.classList.toggle('active',Number(el.dataset.area)===state.area);el.setAttribute('aria-pressed',String(Number(el.dataset.area)===state.area))});
- $$('#organs>g').forEach(el=>{el.style.opacity=state.area===null||Number(el.dataset.area)===state.area?'1':'.18'});
- let rows=filtered(),pages=Math.max(1,Math.ceil(rows.length/12));state.page=Math.min(state.page,pages);
- $('#resultsCount').textContent=`${rows.length} ${rows.length===1?'ficha':'fichas'}${state.area===null?'':` · ${AREAS[state.area]}`}`;
- $('#empty').hidden=rows.length!==0;
- $('#cards').innerHTML=rows.slice((state.page-1)*12,state.page*12).map(p=>`<article class="peptide-card" data-card="${esc(p.id)}"><div class="card-top">${badge(p)}<button class="favorite" data-favorite="${esc(p.id)}" aria-label="Guardar ${esc(p.display_name)}" aria-pressed="${progress.favorites.includes(p.id)}">${progress.favorites.includes(p.id)?'★':'☆'}</button></div><h3><button class="title-button" data-open="${esc(p.id)}">${esc(p.display_name)}</button></h3><div class="card-area">${AREAS[p.area]}${p.priority?'<span class="priority-label">· Ruta de estudio</span>':''}${progress.reviewed.includes(p.id)?'<span class="studied-label">✓ Estudiado</span>':''}</div><p>${esc(p.summary_es)}</p><div class="card-bottom"><button class="detail-btn" data-open="${esc(p.id)}">Explorar ficha ↗</button><label class="compare-label"><input type="checkbox" data-compare="${esc(p.id)}" ${state.compared.includes(p.id)?'checked':''}> Comparar</label></div></article>`).join('');
- $('#pagination').innerHTML=rows.length>12?`<button data-page="${state.page-1}" ${state.page===1?'disabled':''}>← Anterior</button><span>${state.page} de ${pages}</span><button data-page="${state.page+1}" ${state.page===pages?'disabled':''}>Siguiente →</button>`:'';
- $('#compareBar').hidden=!state.compared.length;$('#compareCount').textContent=`${state.compared.length} de 3 seleccionados`;
-}
-function sourceSection(label,value,fallback=''){
- const text=sourceText(value);
- if(!text&&!fallback)return '';
- const excerpt=text&&sourceExcerpt(text)?'<p class="note-hint">El archivo contiene un extracto incompleto. Consulta la ficha de origen para obtener el contexto completo.</p>':'';
- return `<details><summary>${esc(label)}${text?' <span lang="en">· original en inglés</span>':''}</summary>${excerpt}<div class="source-text" lang="${text?'en':'es'}">${esc(text||fallback)}</div></details>`;
-}
-function approvedContext(p){if(p.status==='approved')return 'La aprobación es de productos e indicaciones específicas. No se extiende automáticamente a preparados compuestos, otras vías, dosis o combinaciones.';if(p.status==='cosmetic')return 'Un ingrediente cosmético tópico no equivale a un medicamento inyectable. Los resultados de una formulación no se transfieren automáticamente a otra.';if(p.status==='trials')return 'Estar en un ensayo clínico no equivale a estar aprobado. Un resultado favorable debe interpretarse junto con el diseño, la población y los riesgos del estudio.';return 'Los usos promocionados y los mecanismos propuestos no establecen eficacia ni seguridad en personas. Separa los hallazgos preclínicos de resultados clínicos confirmados.'}
-function specificNote(p){
- if(p.name==='Retatrutide')return `<div class="notice"><strong>Verificación FDA · 26 oct 2026.</strong> Retatrutide no está aprobado; la FDA indica que no puede utilizarse para compounding bajo la normativa federal. ${link(FDA_GLP,'Consultar FDA')}</div>`;
- if(p.name==='GHK-Cu'||p.name==='Copper tripeptide-1')return `<div class="notice">Para GHK-Cu inyectable, FDA describe dudas sobre inmunogenicidad e impurezas y datos humanos limitados. ${link(FDA_RISK,'Ver fuente FDA')}</div>`;
- if(p.name==='BPC-157'||p.name==='MOTS-c')return `<div class="notice">FDA señala información de seguridad insuficiente para usos y vías propuestos. ${link(FDA_RISK,'Revisar riesgos FDA')}</div>`;
- if(['Tirzepatide','Semaglutide'].includes(p.name))return `<div class="notice">Una mezcla con glicina o piridoxina no comparte automáticamente las indicaciones ni la aprobación del producto comercial. ${link(FDA_GLP,'Consultar FDA sobre preparados GLP-1')}</div>`;
- return '';
-}
-let currentId=null;
-function openDetail(id){let p=get(id);if(!p)return;currentId=id;try{history.replaceState(null,'','#p='+encodeURIComponent(id))}catch{}const d=p.detail,reviewed=progress.reviewed.includes(id);
- $('#detailContent').innerHTML=`<div class="modal-head"><div class="modal-topline">${badge(p)}<button class="close-dialog" data-close="detailDialog" aria-label="Cerrar ficha">×</button></div><h2 id="detailTitle">${esc(p.display_name)}</h2><div class="sub">${AREAS[p.area]} · ${esc(sourceValue(p.class))}${p.aliases?`<br>Alias: ${esc(p.aliases)}`:''}</div></div><div class="modal-body"><p class="summary-es">${esc(p.summary_es)}</p><div class="evidence-legend">Solo para propósitos educativos · resumen en español. Revisión clínica integral pendiente.</div>${specificNote(p)}${p.editorial_note?`<div class="notice">${esc(p.editorial_note.text)} ${link(p.editorial_note.url,'Fuente primaria')}</div>`:''}${p.correction?`<div class="notice good">${esc(p.correction.text)} ${link(p.correction.url,'Fuente primaria')}</div>`:''}<div class="detail-facts"><div class="fact"><small>Clasificación educativa</small>${esc(STATUS[p.status])}<br><span class="note-hint">${p.correction?'Corrección contrastada con FDA':'Según categoría del Excel aportado; no verificada individualmente'}</span></div><div class="fact"><small>Evidencia del archivo</small>${esc(EVIDENCE[p.evidence_strength]||p.evidence_strength)}<br><span class="note-hint">Aprobación y calidad de evidencia son conceptos distintos.</span></div><div class="fact"><small>Estudios tabulados por la fuente</small>${p.study_table_rows ? `${p.study_rows_human??'No indicado'} humanos · ${p.study_rows_animal_or_cell??'No indicado'} animales/células` : 'No tabulados en el archivo'}<br><span class="note-hint">Conteo de filas del archivo; un cero no significa ausencia de estudios.</span></div><div class="fact"><small>Referencias importadas</small>${p.citations.length} filas de referencias<br><span class="note-hint">Enlaces originales, no verificados uno a uno.</span></div></div><h3>Qué debes conocer</h3><p>${approvedContext(p)}</p><p>Para comprender un uso, identifica la indicación, el producto y la vía. Consulta a tu profesional de salud antes de considerar cualquier tratamiento.</p><h3>Profundiza en la ficha original</h3><p class="note-hint">Se conserva el contenido del archivo en inglés para consultar su contexto. La reproducción del material original no constituye validación clínica independiente.</p>${sourceSection('Qué es y panorama de investigación',joinSourceText(p.what_it_is,p.research_at_a_glance),'El archivo no aporta un panorama adicional. Consulta el resumen educativo y las referencias de esta ficha.')}${sourceSection('Conclusión de la fuente',p.key_takeaway)}${sourceSection('Mecanismo de acción',p.mechanism)}${sourceSection('Hallazgos y estudios',p.human_study_findings,'El archivo no aporta una sección independiente de hallazgos. Esto no significa que no existan estudios; revisa la conclusión de la fuente y sus referencias.')}${sourceSection('Cómo calificó la evidencia la fuente',p.evidence_note)}${sourceSection('Seguridad y efectos adversos',p.side_effects_safety,'El archivo no aporta una sección independiente de seguridad. La falta de información no significa ausencia de riesgos. Consulta la ficha oficial y a un profesional de salud.')}${sourceSection('Estado FDA descrito por la fuente',p.fda_status)}${sourceSection('Preguntas frecuentes de la fuente',d.faq)}${sourceSection('Secciones completas del archivo',d.sections)}<details><summary>Referencias y trazabilidad</summary><p>${link(p.url,'Ficha de origen en Superpower')} · ${link(FDA_DRUGS,'Drugs@FDA')}</p><p class="note-hint">Hoja Peptides + Full detail; slug: ${esc(p.id)}. Fecha de la fuente: ${esc(p.last_updated||d.updated||'No indicada')}. Revisores citados por la fuente: ${esc(p.reviewed_by||'No indicados')}; no son revisores de esta adaptación.</p><ol class="link-list">${p.citations.map(c=>`<li>${link(c.url,c.ref||c.host||c.url)}${c.context?`<br><span lang="en">${esc(c.context)}</span>`:''}</li>`).join('')}</ol></details><div class="notice">Solo para propósitos educativos. Esta ficha no constituye consejo médico, diagnóstico ni prescripción. No indica que el compuesto esté disponible para venta o preparación; consulta a un profesional de salud antes de considerar tratamientos.</div><div class="detail-actions"><button class="primary" id="markReviewed" data-id="${esc(id)}">${reviewed?'✓ Estudiado · desmarcar':'Marcar como estudiado'}</button><button class="outline" id="detailFavorite" data-id="${esc(id)}">${progress.favorites.includes(id)?'★ Guardado · quitar':'☆ Guardar ficha'}</button><button class="outline" id="shareDetail">Compartir ficha ↗</button><button class="outline" id="printDetail">Imprimir ficha</button><button class="outline" id="nextDetail">Siguiente ficha →</button></div><label class="notes-label" for="notes">Mis apuntes de estudio</label><textarea id="notes" maxlength="10000" placeholder="Anota conceptos o dudas para discutir con el farmacéutico…">${esc(progress.notes[id]||'')}</textarea><p class="note-hint" id="noteStatus">Guardado local en este navegador. No incluyas datos de pacientes. ${storageOk?'':'Almacenamiento local no disponible; exporta antes de salir.'}</p></div>`;
- if(!$('#detailDialog').open)$('#detailDialog').showModal();$('#detailDialog').scrollTop=0;
- $('#notes').addEventListener('input',e=>{progress.notes[id]=e.target.value;save();$('#noteStatus').textContent=storageOk?'Apuntes guardados en este navegador. No se sincronizan con otros dispositivos.':'No se pudo guardar localmente. Exporta tu progreso.'});
-}
-function openInfo(title,body){$('#infoContent').innerHTML=`<div class="modal-head"><div class="modal-topline"><span class="section-label">CARLOS GUZMÁN · EDUCACIÓN</span><button class="close-dialog" data-close="infoDialog" aria-label="Cerrar ventana">×</button></div><h2 id="infoTitle">${esc(title)}</h2></div><div class="modal-body">${body}</div>`;if(!$('#infoDialog').open)$('#infoDialog').showModal();$('#infoDialog').scrollTop=0}
-function guide(){openInfo('Aprender con contexto',`<p class="summary-es">Busca. Comprende. Contrasta.</p><ol><li>Selecciona un sistema del cuerpo o busca por nombre, uso o alias.</li><li>Filtra por clasificación y por nivel de evidencia del archivo.</li><li>Abre la ficha: lee el resumen en español y consulta mecanismo, estudios y seguridad en el original en inglés.</li><li>Compara hasta tres fichas para entender diferencias de uso y evidencia.</li><li>Guarda las que quieras repasar, añade apuntes y marca lo estudiado.</li></ol><h3>Cómo interpretar las etiquetas</h3><p><strong>Aprobación reportada*:</strong> el archivo lo clasifica como aprobado, o existe una corrección documentada con FDA. Siempre comprobar producto e indicación.</p><p><strong>En investigación clínica:</strong> estudia usos experimentales; el grado de desarrollo no garantiza aprobación ni disponibilidad.</p><p><strong>Experimental / bienestar:</strong> categoría de procedencia que reúne compuestos promovidos en ese ámbito; no significa eficacia probada.</p><p><strong>Cosmético / tópico:</strong> no extrapolar a inyecciones o tratamientos de enfermedades.</p><p>Las etiquetas «investigación extensa», «moderada» y «limitada» son traducciones de la clasificación del archivo. No constituyen una evaluación GRADE ni una revisión sistemática. «FDA approved» se conserva como etiqueta de origen, separada de calidad de evidencia.</p><h3>Ruta de estudio</h3><p>Selección educativa sobre semaglutide, tirzepatide, tesamorelin, sermorelin, GHK-Cu, MOTS-c, BPC-157, TB-500, retatrutide y glutathione. No afirma que estén en inventario ni autoriza su preparación.</p><h3>Combinaciones que requieren contexto</h3><p>«Wolverine Blend» es un nombre comercial que puede referirse a BPC-157/TB-500; verificar siempre composición y formulación. La evidencia de componentes aislados no valida la mezcla. Lo mismo aplica a tirzepatide con glicina o B6. Estas mezclas no se agregan como fichas del archivo original.</p><h3>Explorador corporal</h3><p>El cuerpo es una ilustración con apariencia tridimensional y puntos interactivos. Puedes ampliar y restablecer la vista. No es un modelo 3D rotatorio ni un instrumento diagnóstico.</p><h3>Mi aprendizaje</h3><p>El progreso y los apuntes viven en este navegador. En equipos compartidos, todos usan el mismo progreso. Exporta el archivo JSON para conservarlo o llevarlo a otro dispositivo. No hay cuentas, calificación, certificación ni panel de supervisor.</p><p>La página puede abrirse sin conexión; los enlaces externos necesitan internet.</p>`)}
-function sources(){openInfo('Fuentes y metodología',`<p class="summary-es">152 fichas trazables. Una adaptación para aprender.</p><p>Base principal: <strong>${esc(DATA.meta.source_file)}</strong>, aportado por el usuario. Se importaron las hojas <em>Peptides</em>, <em>Full detail</em> y <em>Citations</em>: 152 registros y ${DATA.meta.citation_rows} filas bibliográficas. Los nombres repetidos conservan sus contextos e identificadores diferentes.</p><p>Se redactaron resúmenes educativos breves en español y se preservó el contenido original en inglés. No se ha realizado traducción íntegra ni revisión clínica exhaustiva de los 152 registros. Las referencias originales están disponibles en cada ficha.</p><p>La navegación por sistemas sigue la clasificación de la fuente; no constituye un mapa anatómico exhaustivo. Por ejemplo, antibióticos o compuestos con múltiples usos pueden aparecer en una sola categoría. Algunos registros no son péptidos.</p><p>Referencia de estructura: ${link('https://superpower.com/guides/peptides','Superpower Peptide Library')}. Diseño y mapa corporal propios de esta adaptación; sin afiliación con Superpower. El usuario debe verificar sus derechos sobre el material aportado antes de redistribuirlo públicamente.</p><h3>Correcciones puntuales · 26 oct 2026</h3><p>Elamipretide, enlicitide y rusfertide estaban bajo «In clinical trials» aunque sus notas reportaban aprobación. Se corrigió su categoría con fuentes FDA; la clasificación original permanece en los datos y en la ficha.</p><ul><li>${link('https://www.fda.gov/drugs/drug-trials-snapshots/drug-trials-snapshots-forzinity','FDA: elamipretide / Forzinity')}</li><li>${link('https://www.fda.gov/drugs/novel-drug-approvals-fda/novel-drug-approvals-2026','FDA: aprobaciones 2026, enlicitide y rusfertide')}</li></ul><p>Estas correcciones no implican verificación individual de todos los estados regulatorios. Los usos fuera de indicación de tesamorelin y los programas previos de trofinetide conservan su contexto separado.</p><h3>Fuentes primarias de seguridad consultadas</h3><ul><li>${link(FDA_RISK,'FDA: sustancias y riesgos potenciales para compounding')}</li><li>${link(FDA_GLP,'FDA: preocupaciones sobre GLP-1 no aprobados')}</li><li>${link(FDA_DRUGS,'Drugs@FDA: comprobar la etiqueta vigente')}</li></ul><p>Una decisión sobre inclusión en listas de sustancias para compounding no equivale a aprobación de un medicamento. El estado legal exige verificación independiente por sustancia, vía y circunstancias.</p><div class="notice"><strong>Estado editorial:</strong> ${esc(DATA.meta.clinical_review)}. No hay actualización automática de evidencia o regulación. Esta guía es educativa. La revisión clínica integral permanece pendiente y las fuentes pueden actualizarse; no sustituye la ficha oficial ni una evaluación individual.</div>`)}
-function learning(){let n=progress.reviewed.length,priority=PEPTIDES.filter(p=>p.priority);openInfo('Mi aprendizaje',`<p class="summary-es">${n} de 152 fichas estudiadas.</p><div class="progress-track" aria-label="${n} de 152 estudiados"><span style="width:${n/152*100}%"></span></div><p>${progress.favorites.length} guardadas · ${Math.round(n/152*100)}% de la biblioteca. Progreso local de este navegador.</p><h3>Ruta de estudio</h3><p>Empieza por esta selección educativa y luego explora el resto de la biblioteca.</p><div class="study-list">${priority.map(p=>`<button class="study-item" data-learn="${esc(p.id)}"><span>${progress.reviewed.includes(p.id)?'✓':'○'}</span><span><strong>${esc(p.display_name)}</strong><small>${AREAS[p.area]} · ${EVIDENCE[p.evidence_strength]}</small></span><span>↗</span></button>`).join('')}</div><div class="detail-actions"><button class="primary" id="continueLearning">Continuar estudio →</button><button class="outline" id="viewSaved">Ver mis guardados</button></div><h3>Últimos estudiados</h3><div class="study-list">${progress.reviewed.slice(-8).reverse().map(id=>`<button class="study-item" data-learn="${esc(id)}">✓ ${esc(get(id).display_name)} ↗</button>`).join('')||'<p>Todavía no has marcado fichas como estudiadas.</p>'}</div><p class="note-hint">Marcar una ficha como estudiada es un registro personal; no certifica competencia clínica.</p>`)}
-function compare(){if(state.compared.length<2){toast('Selecciona al menos dos fichas para comparar.');return}const ps=state.compared.map(get);const row=(label,fn)=>`<tr><th scope="row">${label}</th>${ps.map(p=>`<td>${fn(p)}</td>`).join('')}</tr>`;openInfo('Comparar péptidos',`<p>Compara el contexto y la evidencia. No implica que los compuestos sean intercambiables ni que puedan combinarse.</p><div class="table-scroll"><table class="compare-table"><thead><tr><th scope="col">Concepto</th>${ps.map(p=>`<th scope="col">${esc(p.display_name)}</th>`).join('')}</tr></thead><tbody>${row('Uso / contexto',p=>esc(p.summary_es))}${row('Sistema',p=>AREAS[p.area])}${row('Clasificación',p=>esc(STATUS[p.status]))}${row('Evidencia del archivo',p=>esc(EVIDENCE[p.evidence_strength]))}${row('Nota de evidencia (EN)',p=>esc(sourceValue(p.evidence_note)))}${row('Seguridad (EN)',p=>esc(sourceValue(p.side_effects_safety,'La fuente no aporta información independiente de seguridad; esto no implica ausencia de riesgos.')))}${row('Ficha de origen',p=>link(p.url,'Consultar'))}</tbody></table></div>`)}
-function download(filename,content,type){const url=URL.createObjectURL(new Blob([content],{type}));const a=document.createElement('a');a.href=url;a.download=filename;a.click();setTimeout(()=>URL.revokeObjectURL(url),1000)}
-function exportProgress(){download('carlos-guzman-mi-progreso.json',JSON.stringify({app:'carlos-guzman-peptidos',version:1,exported:new Date().toISOString(),...progress},null,2),'application/json');toast('Progreso exportado. Consérvalo para importarlo después.')}
-function exportCsv(){const keys=['display_name','summary_es','body_area','category','status','evidence_strength','fda_status','url'];const safeCell=v=>{let s=String(v??'');if(/^[=+\-@\t\r]/.test(s))s="'"+s;return '"'+s.replace(/"/g,'""')+'"'};download('carlos-guzman-peptidos-152.csv','\ufeff'+[keys.join(','),...PEPTIDES.map(p=>keys.map(k=>safeCell(p[k])).join(','))].join('\r\n'),'text/csv;charset=utf-8')}
-document.addEventListener('click',e=>{const el=e.target.closest('button,[data-area]');if(!el)return;
- if(el.dataset.close){$('#'+el.dataset.close).close();return}
- if(el.dataset.system!==undefined){selectArea(Number(el.dataset.system));return}
- if(el.dataset.bodySystem!==undefined){selectArea(Number(el.dataset.bodySystem));if(window.innerWidth<601)$('#library').scrollIntoView({behavior:'smooth',block:'start'});return}
- if(el.matches('.map-nodes g')){selectArea(Number(el.dataset.area));$('#library').scrollIntoView();return}
- if(el.dataset.status!==undefined){state.status=el.dataset.status;state.page=1;render();return}
- if(el.dataset.open){openDetail(el.dataset.open);return}
- if(el.dataset.favorite){toggle('favorites',el.dataset.favorite);return}
- if(el.dataset.page){state.page=Number(el.dataset.page);render();$('#library').scrollIntoView();return}
- if(el.dataset.learn){$('#infoDialog').close();openDetail(el.dataset.learn);return}
- switch(el.id){
- case 'allSystems':case 'clearBody':state.area=null;state.page=1;render();break;
- case 'motionToggle':{const paused=document.documentElement.dataset.motion!=='off';document.documentElement.dataset.motion=paused?'off':'on';el.setAttribute('aria-pressed',String(!paused));el.textContent=paused?'Activar movimiento ▶':'Pausar movimiento ⏸';try{localStorage.setItem('cg-motion',paused?'off':'on')}catch{}break;}
- case 'zoomIn':zoomFigure(figureZoom+.2);break;
- case 'zoomOut':zoomFigure(figureZoom-.2);break;
- case 'resetView':zoomFigure(1);break;
- case 'clearFilters':case 'emptyReset':reset();break;
- case 'showSources':sources();break;
- case 'guideNav':case 'methodNav':case 'guideBottom':guide();break;
- case 'studyNav':learning();break;
- case 'startMia':state.mine='priority';state.page=1;state.area=null;state.q='';state.status='';state.evidence='';$('#search').value='';$('#evidence').value='';$('#myFilter').value='priority';render();$('#library').scrollIntoView();break;
- case 'markReviewed':toggle('reviewed',el.dataset.id);openDetail(el.dataset.id);break;
- case 'detailFavorite':toggle('favorites',el.dataset.id);openDetail(el.dataset.id);break;
- case 'shareDetail':sharePeptide(currentId);break;
- case 'printDetail':window.print();break;
- case 'nextDetail':{let rows=filtered();if(!rows.length)rows=PEPTIDES;let idx=rows.findIndex(p=>p.id===currentId);openDetail(rows[(idx+1)%rows.length].id);break}
- case 'continueLearning':{const p=PEPTIDES.find(p=>p.priority&&!progress.reviewed.includes(p.id))||PEPTIDES.find(p=>!progress.reviewed.includes(p.id))||PEPTIDES[0];$('#infoDialog').close();openDetail(p.id);break}
- case 'viewSaved':$('#infoDialog').close();reset();state.mine='favorite';$('#myFilter').value='favorite';render();$('#library').scrollIntoView();break;
- case 'openCompare':compare();break;
- case 'clearCompare':state.compared=[];render();break;
- case 'exportProgress':exportProgress();break;
- case 'importProgress':$('#progressFile').click();break;
- case 'downloadCsv':exportCsv();break;
- }
-});
-document.addEventListener('change',e=>{let el=e.target;if(el.dataset.compare){let id=el.dataset.compare;if(el.checked&&state.compared.length===3){el.checked=false;toast('Puedes comparar hasta tres fichas.');return}state.compared=el.checked?[...state.compared,id]:state.compared.filter(x=>x!==id);render()}});
-$('#search').addEventListener('input',e=>{state.q=e.target.value.trim();state.page=1;render()});
-[['#sort','sort'],['#evidence','evidence'],['#myFilter','mine']].forEach(([selector,key])=>$(selector).addEventListener('change',e=>{state[key]=e.target.value;state.page=1;render()}));
-$$('.map-nodes g').forEach(el=>el.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();selectArea(Number(el.dataset.area));$('#library').scrollIntoView()}}));
-$$('dialog').forEach(d=>d.addEventListener('click',e=>{if(e.target===d){let r=d.getBoundingClientRect();if(e.clientX<r.left||e.clientX>r.right||e.clientY<r.top||e.clientY>r.bottom)d.close()}}));
-document.addEventListener('keydown',e=>{if(e.key==='/'&&!['INPUT','TEXTAREA','SELECT'].includes(document.activeElement.tagName)&&!$('dialog[open]')){e.preventDefault();$('#search').focus();$('#library').scrollIntoView()}});
-$('#progressFile').addEventListener('change',async e=>{const file=e.target.files[0];if(!file)return;try{if(file.size>5*1024*1024)throw Error('Tamaño');let incoming=JSON.parse(await file.text());if(!['mia-peptide-academy','carlos-guzman-peptidos'].includes(incoming.app)||incoming.version!==1)throw Error('App');let clean=cleanProgress(incoming);progress={favorites:[...new Set([...progress.favorites,...clean.favorites])],reviewed:[...new Set([...progress.reviewed,...clean.reviewed])],notes:{...progress.notes,...clean.notes}};save();render();toast('Progreso importado y combinado con el actual.')}catch{toast('No se pudo importar. Usa un archivo de progreso exportado por esta academia.')}finally{e.target.value=''}});
-updateProgress();render();zoomFigure(1);$('#startupNotice').hidden=true;document.documentElement.dataset.appReady='true';
+// ---------- storage (per-viewer, safe) ----------
+var KEY='fm-peptidos-v1';
+function load(){try{return JSON.parse(localStorage.getItem(KEY))||{}}catch(e){return {}}}
+var S=load(); S.known=S.known||{}; S.hist=S.hist||[]; S.name=S.name||'';
+function save(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}}
 
-document.addEventListener('click',e=>{if(!e.target.closest('button,input,label,select,a,textarea,summary')){const card=e.target.closest('[data-card]');if(card)openDetail(card.dataset.card)}});
+function $(id){return document.getElementById(id)}
+function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
+function norm(s){return String(s||'').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'')}
+function shuffle(a){a=a.slice();for(var i=a.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=a[i];a[i]=a[j];a[j]=t}return a}
+function catTag(p){return '<span class="tag t-'+p.ca+'">'+CATS[p.ca].n+'</span>'}
+function evTag(p){var e=EVS[p.ev];return '<span class="tag o e-'+p.ev+'"><span class="bar l'+e.lv+'"><i></i><i></i><i></i><i></i></span> '+e.n+'</span>'}
+function byId(id){for(var i=0;i<P.length;i++)if(P[i].id===id)return P[i]}
 
-function publicPeptideUrl(id){return new URL(location.pathname+'#p='+encodeURIComponent(id),location.origin).href;}
-async function sharePeptide(id){const p=get(id);if(!p)return;const url=publicPeptideUrl(id);try{if(navigator.share){await navigator.share({title:p.display_name+' · Carlos Guzmán',text:p.summary_es,url});return}if(navigator.clipboard&&window.isSecureContext){await navigator.clipboard.writeText(url);toast('Enlace de la ficha copiado.');return}}catch(e){if(e.name==='AbortError')return}openInfo('Enlace para compartir',`<p>Copia este enlace para compartir la ficha de ${esc(p.display_name)}.</p><label class="notes-label" for="shareUrl">Enlace directo</label><input id="shareUrl" class="share-url" readonly value="${esc(url)}"><p class="note-hint">El enlace abre la ficha directamente. La vista previa en redes muestra la portada general de la biblioteca.</p>`);}
-function openFromHash(){const m=location.hash.match(/^#p=(.+)$/);if(m){try{const id=decodeURIComponent(m[1]);if(IDS.has(id))openDetail(id)}catch{}}}
-$('#detailDialog').addEventListener('close',()=>{if(location.hash.startsWith('#p=')){try{history.replaceState(null,'',location.pathname+location.search+'#library')}catch{}}});
-window.addEventListener('hashchange',openFromHash);openFromHash();
+// ---------- rutas (hash) ----------
+var views=['lib','det','fc','quiz','prog'];
+var ROUTE={lib:'biblioteca',fc:'flashcards',quiz:'quiz',prog:'progreso'};
+var RROUTE={};Object.keys(ROUTE).forEach(function(k){RROUTE[ROUTE[k]]=k});
+function slug(s){return norm(s).replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'')}
+var BYSLUG={};P.forEach(function(p){var s=slug(p.n),b=s,i=2;while(BYSLUG[s]){s=b+'-'+(i++)}p.sl=s;BYSLUG[s]=p});
+var libY=0,cur='lib';
+function show(v,keepScroll){if(cur==='lib'&&v!=='lib')libY=window.scrollY;
+  views.forEach(function(x){$('v-'+x).classList.toggle('hidden',x!==v)});
+  Array.prototype.forEach.call(document.querySelectorAll('#tabs button'),function(b){b.classList.toggle('on',b.dataset.v===(v==='det'?'lib':v))});
+  if(v==='prog')renderProg(); if(v==='fc')fcRender();
+  var y=(v==='lib'&&cur!=='lib')?libY:0;cur=v;if(!keepScroll)window.scrollTo(0,y);}
+function go(h){if(location.hash==='#'+h)route();else location.hash=h}
+function route(){var h;try{h=decodeURIComponent((location.hash||'').slice(1))}catch(e){h='biblioteca'};
+  if(h.indexOf('p-')===0&&BYSLUG[h.slice(2)]){renderDetail(BYSLUG[h.slice(2)]);show('det');return}
+  show(RROUTE[h]||'lib')}
+window.addEventListener('hashchange',route);
+Array.prototype.forEach.call(document.querySelectorAll('#tabs button'),function(b){b.onclick=function(){go(ROUTE[b.dataset.v])}});
 
-try{const savedMotion=localStorage.getItem('cg-motion');if(savedMotion==='off'){document.documentElement.dataset.motion='off';$('#motionToggle').setAttribute('aria-pressed','false');$('#motionToggle').textContent='Activar movimiento ▶'}}catch{}
+// ---------- library ----------
+var F={area:null,cat:null,ev:null,q:'',sort:'az'};
+function countBy(k){var o={};P.forEach(function(p){o[p[k]]=(o[p[k]]||0)+1});return o}
+var cA=countBy('ar'),cC=countBy('ca'),cE=countBy('ev');
+
+$('stats').innerHTML=[[P.length,'fichas'],[cC.fda,'aprobación*'],[cC.ensayos,'en ensayos'],[cC.wellness,'experimentales'],[cC.cosmetico,'cosméticos']]
+  .map(function(s){return '<div class="stat"><b>'+s[0]+'</b><span>'+s[1]+'</span></div>'}).join('');
+
+function chips(el,map,counts,key,dotFn){el.innerHTML=Object.keys(map).map(function(k){return '<button class="chip" data-k="'+k+'">'+(dotFn?dotFn(k):'')+esc(map[k].l||map[k].n)+' <span class="n">'+(counts[k]||0)+'</span></button>'}).join('');
+  Array.prototype.forEach.call(el.children,function(b){b.onclick=function(){setF(key,b.dataset.k)}})}
+chips($('areaChips'),AREAS,cA,'area');
+chips($('catChips'),CATS,cC,'cat',function(k){return '<span class="dot" style="background:'+CATS[k].c+'"></span>'});
+chips($('evChips'),EVS,cE,'ev');
+
+function setF(k,v){F[k]=(F[k]===v)?null:v;renderLib()}
+window.FM={areas:AREAS,counts:cA,getArea:function(){return F.area},pick:function(k){if(cur!=='lib')go('biblioteca');setF('area',k);var g=$('count');if(g&&g.getBoundingClientRect().top>window.innerHeight-120)g.scrollIntoView({behavior:'smooth',block:'start'})}};
+$('q').oninput=function(){F.q=this.value;renderLib()};
+$('sort').onchange=function(){F.sort=this.value;renderLib()};
+
+function hay(p){return norm([p.n,p.al,p.cl,p.u,p.c,p.m,(p.x&&p.x.r)||'',AREAS[p.ar].n,CATS[p.ca].l].join(' '))}
+P.forEach(function(p){p._h=hay(p)});
+
+function filtered(){var q=norm(F.q).trim().split(/\s+/).filter(Boolean);
+  var r=P.filter(function(p){if(F.area&&p.ar!==F.area)return false;if(F.cat&&p.ca!==F.cat)return false;if(F.ev&&p.ev!==F.ev)return false;
+    return q.every(function(w){return p._h.indexOf(w)>=0})});
+  if(F.sort==='az')r.sort(function(a,b){return a.n.localeCompare(b.n,'es')});
+  if(F.sort==='ev')r.sort(function(a,b){return EVS[b.ev].lv-EVS[a.ev].lv||a.n.localeCompare(b.n,'es')});
+  if(F.sort==='ar')r.sort(function(a,b){return AREAS[a.ar].n.localeCompare(AREAS[b.ar].n,'es')||a.n.localeCompare(b.n,'es')});
+  return r}
+
+function renderLib(){
+  if(window.Body3D)Body3D.setActive(F.area);
+  [['areaChips','area'],['catChips','cat'],['evChips','ev']].forEach(function(x){Array.prototype.forEach.call($(x[0]).children,function(b){b.classList.toggle('on',b.dataset.k===F[x[1]])})});
+  var r=filtered();
+  var act=[F.area&&AREAS[F.area].n,F.cat&&CATS[F.cat].l,F.ev&&EVS[F.ev].n].filter(Boolean);
+  $('count').innerHTML=r.length+' resultado'+(r.length===1?'':'s')+(act.length?' · '+esc(act.join(' · '))+' · <a href="#" id="clr">limpiar filtros</a>':'');
+  var clr=$('clr');if(clr)clr.onclick=function(e){e.preventDefault();F.area=F.cat=F.ev=null;renderLib()};
+  $('grid').innerHTML=r.length?r.map(function(p){return '<button class="pc" data-id="'+p.id+'">'+(S.known[p.id]?'<span class="done" title="Dominado">✓</span>':'')+
+    '<h4>'+esc(p.n)+'</h4>'+(p.al?'<div class="al">'+esc(p.al)+'</div>':'')+'<p>'+esc(p.u)+'</p><div class="tags">'+catTag(p)+evTag(p)+'</div></button>'}).join('')
+    :'<p class="hint">No hay resultados. Prueba con otra palabra o limpia los filtros.</p>';
+  Array.prototype.forEach.call($('grid').children,function(b){if(b.dataset.id)b.onclick=function(){go('p-'+byId(+b.dataset.id).sl)}});
+}
+
+// ---------- ficha completa ----------
+var CATCOL={fda:'var(--fda)',ensayos:'var(--ens)',wellness:'var(--well)',cosmetico:'var(--cos)'};
+var CATDESC={fda:'Aprobación reportada por la fuente*',ensayos:'En investigación clínica',wellness:'No aprobado por la FDA',cosmetico:'Ingrediente cosmético'};
+var EVTXT={fda:'La fuente reporta una aprobación regulatoria. La aprobación y la calidad de la evidencia deben interpretarse por separado y para una indicación concreta.',alta:'Varios ensayos humanos de buena calidad apuntan en la misma dirección.',moderada:'Hay estudios en humanos, pero son pocos, pequeños o sin replicar.',baja:'Casi toda la evidencia es animal, de laboratorio o de estudios humanos que fallaron.'};
+function hash(s){var h=2166136261;for(var i=0;i<s.length;i++){h^=s.charCodeAt(i);h=Math.imul(h,16777619)}return h>>>0}
+function art(p){var r=hash(p.n),n=7+(r%7),W=260,H=160,pts=[],col=CATCOL[p.ca];
+  function rnd(){r=(Math.imul(r,1103515245)+12345)>>>0;return r/4294967296}
+  for(var i=0;i<n;i++){var x=24+i*(W-48)/(n-1),y=H/2+Math.sin(i*1.1+rnd()*2)*38;pts.push([x,y])}
+  var path='M'+pts.map(function(q){return q[0].toFixed(1)+' '+q[1].toFixed(1)}).join(' L');
+  var beads=pts.map(function(q,i){var big=rnd()>.55,rad=big?13:9;
+    return '<circle cx="'+q[0].toFixed(1)+'" cy="'+q[1].toFixed(1)+'" r="'+rad+'" fill="'+(i%3===0?col:'var(--panel)')+'" stroke="'+col+'" stroke-width="2.5"/>'+
+    (rnd()>.5?'<line x1="'+q[0].toFixed(1)+'" y1="'+(q[1]+rad).toFixed(1)+'" x2="'+q[0].toFixed(1)+'" y2="'+(q[1]+rad+12).toFixed(1)+'" stroke="'+col+'" stroke-width="2" stroke-linecap="round"/><circle cx="'+q[0].toFixed(1)+'" cy="'+(q[1]+rad+16).toFixed(1)+'" r="4" fill="'+col+'"/>':'')}).join('');
+  return '<svg viewBox="0 0 '+W+' '+H+'" role="img" aria-label="Ilustración de cadena de aminoácidos"><path d="'+path+'" fill="none" stroke="'+col+'" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" opacity=".55"/>'+beads+'</svg>'}
+function li(arr){return (arr||[]).map(function(x){return '<li>'+esc(x)+'</li>'}).join('')}
+function renderDetail(p){var x=p.x||{},area=AREAS[p.ar],lv=EVS[p.ev].lv;
+  var secs=[['res','Resumen'],['vistazo','De un vistazo'],['como','¿Cómo funciona?'],['fda','¿Está aprobado?'],['inv','Investigación'],['seg','Seguridad'],['dosis','Administración'],['personal','Qué debes conocer'],['fuentes','Fuentes']];
+  var rel=P.filter(function(q){return q.ar===p.ar&&q.id!==p.id}).sort(function(a,b){return (a.ca===p.ca?0:1)-(b.ca===p.ca?0:1)||EVS[b.ev].lv-EVS[a.ev].lv}).slice(0,6);
+  var list=P.slice().sort(function(a,b){return a.n.localeCompare(b.n,'es')}),ix=list.indexOf(p),prev=list[(ix-1+list.length)%list.length],next=list[(ix+1)%list.length];
+  var segs='';for(var i=1;i<=4;i++)segs+='<i style="'+(i<=lv?'background:'+(p.ev==='baja'?'var(--baja)':p.ev==='moderada'?'var(--mod)':'var(--alta)'):'')+'"></i>';
+  var h='<nav class="crumbs" aria-label="Ruta"><a href="#biblioteca">Biblioteca</a><span>›</span><a href="#biblioteca" data-area="'+p.ar+'">'+esc(area.n)+'</a><span>›</span><span>'+esc(p.n)+'</span></nav>'+
+  '<div class="dgrid"><article>'+
+  '<header class="dhero"><div><span class="eyebrow">'+esc(area.n)+'</span><h1>'+esc(p.n)+'</h1>'+(p.al?'<div class="alias">También conocido como '+esc(p.al)+'</div>':'<div class="alias">'+esc(p.cl)+'</div>')+
+   '<div class="tags">'+catTag(p)+evTag(p)+(p.al?'<span class="tag o">'+esc(p.cl)+'</span>':'')+'</div>'+
+   '<div class="byline">Carlos Guzmán · Guía educativa</div><button class="btn mkb mkm'+(S.known[p.id]?' ghost':'')+'" type="button">'+(S.known[p.id]?'✓ Dominado':'Marcar como dominado')+'</button></div><div class="art">'+art(p)+'</div></header>'+
+  '<div class="public-notice"><strong>Solo para propósitos educativos.</strong> No constituye consejo médico, diagnóstico ni prescripción. La clasificación y las referencias proceden de la fuente original; revisión clínica integral pendiente.</div>'+
+  '<section class="dsec" id="s-res" style="padding-top:0"><div class="takeaway"><span class="eyebrow">Punto clave</span><p>'+esc(x.r||p.u)+'</p></div></section>'+
+  '<section class="dsec" id="s-vistazo"><h2>De un vistazo</h2><table class="glance"><tbody>'+
+   '<tr><th>Para qué se usa</th><td>'+esc(p.u)+'</td></tr>'+
+   '<tr><th>Estatus FDA</th><td>'+esc(CATDESC[p.ca])+'</td></tr>'+
+   '<tr><th>Qué es</th><td>'+esc(x.q||p.cl)+'</td></tr>'+
+   '<tr><th>Marca / vía</th><td>'+esc(p.m)+'</td></tr>'+
+   (x.e&&x.e.length?'<tr><th>Estudio clave</th><td>'+esc(x.e[0][0])+': '+esc(x.e[0][2])+'</td></tr>':'')+
+   '<tr><th>Evidencia</th><td><span class="e-'+p.ev+'" style="font-weight:700">'+esc(EVS[p.ev].n)+'</span></td></tr>'+
+  '</tbody></table></section>'+
+  '<section class="dsec" id="s-como"><h2>¿Cómo funciona?</h2><p>'+esc(x.m||p.c)+'</p>'+(x.mp&&x.mp.length?'<ol class="steps">'+li(x.mp)+'</ol>':'')+'</section>'+
+  '<section class="dsec" id="s-fda"><h2>¿Está aprobado por la FDA?</h2><p>'+esc(x.f||CATDESC[p.ca])+'</p>'+
+   '<div class="statcard"><div class="ic" style="background:'+CATCOL[p.ca]+'">'+(p.ca==='fda'?'✓':p.ca==='ensayos'?'⚗':p.ca==='cosmetico'?'◌':'!')+'</div><div><div class="hint">Estatus regulatorio</div><div class="big2">'+esc(CATS[p.ca].l)+'</div></div></div></section>'+
+  '<section class="dsec" id="s-inv"><h2>¿Qué dice la investigación?</h2>'+
+   (x.e&&x.e.length?'<div class="tscroll"><table class="etab"><thead><tr><th>Estudio</th><th>Población / diseño</th><th>Resultado</th></tr></thead><tbody>'+x.e.map(function(r){return '<tr><td>'+esc(r[0])+'</td><td>'+esc(r[1])+'</td><td>'+esc(r[2])+'</td></tr>'}).join('')+'</tbody></table></div>':'')+
+   '<div class="meter"><div><div class="segs">'+segs+'</div><div class="lbl e-'+p.ev+'" style="margin-top:6px">'+esc(EVS[p.ev].n)+'</div></div><p>'+esc(x.en||EVTXT[p.ev])+'</p></div></section>'+
+  '<section class="dsec" id="s-seg"><h2>Efectos secundarios y seguridad</h2><div class="safe">'+
+   '<div><h4>Efectos comunes</h4><ul>'+(x.s&&x.s.length?li(x.s):'<li>Ver etiqueta del producto.</li>')+'</ul></div>'+
+   '<div class="warn"><h4>Advertencias importantes</h4><ul>'+(x.sg&&x.sg.length?li(x.sg):'<li>'+esc(p.a)+'</li>')+'</ul></div></div></section>'+
+  '<section class="dsec" id="s-dosis"><h2>Administración y contexto</h2><div class="dosebox"><b>'+esc(p.m)+'</b><br>'+esc('La vía descrita es contexto de la fuente, no una instrucción de uso. Consulta la etiqueta oficial y a un profesional de salud.')+'</div>'+
+   '<p class="hint" style="margin-top:10px">Esta guía no proporciona pautas de dosificación personal.</p></section>'+
+  '<section class="dsec" id="s-personal"><div class="staff"><h2>Qué debes conocer</h2><ul>'+li([p.a,'Un mecanismo biológico o un resultado de laboratorio no demuestra por sí solo un beneficio en personas.'])+'</ul></div></section>'+
+  '<section class="dsec"><h2>Más de '+esc(area.n.toLowerCase())+'</h2><div class="related">'+rel.map(function(q){return '<a href="#p-'+q.sl+'"><b>'+esc(q.n)+'</b><span>'+esc(q.u)+'</span></a>'}).join('')+'</div></section>'+
+  '<section class="dsec" id="s-fuentes"><h2>Fuentes</h2>'+(p.ci.length?'<ol class="cites">'+p.ci.map(function(u){return '<li><a href="'+esc(u)+'" target="_blank" rel="noopener">'+esc(u.replace(/^https?:\/\/(www\.)?/,'').replace(/\?.*$/,''))+'</a></li>'}).join('')+'</ol>':'<p class="hint">Sin fuentes listadas.</p>')+
+   '<p class="hint" style="margin-top:12px">Solo para propósitos educativos. Referencias importadas; no verificadas individualmente. No sustituye la evaluación de un profesional de salud.</p></section>'+
+  '<nav class="pnav"><a href="#p-'+prev.sl+'"><span>← Anterior</span>'+esc(prev.n)+'</a><a href="#p-'+next.sl+'"><span>Siguiente →</span>'+esc(next.n)+'</a></nav>'+
+  '</article><aside class="toc"><h5>En esta ficha</h5>'+secs.map(function(s){return '<a href="#p-'+p.sl+'" data-s="s-'+s[0]+'">'+s[1]+'</a>'}).join('')+
+   '<button class="btn mkb'+(S.known[p.id]?' ghost':'')+'" id="mk" type="button">'+(S.known[p.id]?'✓ Dominado':'Marcar como dominado')+'</button></aside></div>';
+  $('det').innerHTML=h;
+  Array.prototype.forEach.call(document.querySelectorAll('.toc a'),function(a){a.onclick=function(e){e.preventDefault();var t=$(a.dataset.s);if(t)t.scrollIntoView({behavior:'smooth',block:'start'})}});
+  var ca=document.querySelector('.crumbs a[data-area]');if(ca)ca.onclick=function(){F.area=p.ar;F.cat=F.ev=null;renderLib();libY=0};
+  Array.prototype.forEach.call(document.querySelectorAll('#det .mkb'),function(btn){btn.onclick=function(){toggleKnown(p.id);Array.prototype.forEach.call(document.querySelectorAll('#det .mkb'),function(x){x.textContent=S.known[p.id]?'✓ Dominado':'Marcar como dominado';x.classList.toggle('ghost',!!S.known[p.id])});renderLib()}});
+}
+function tocSpy(){if(cur!=='det')return;var links=document.querySelectorAll('.toc a'),on=null;
+  Array.prototype.forEach.call(links,function(a){var t=$(a.dataset.s);if(t&&t.getBoundingClientRect().top<140)on=a});
+  Array.prototype.forEach.call(links,function(a){a.classList.toggle('on',a===on)})}
+window.addEventListener('scroll',tocSpy,{passive:true});
+function toggleKnown(id){if(S.known[id])delete S.known[id];else S.known[id]=1;save()}
+
+// ---------- flashcards ----------
+function fillSel(el,all){el.innerHTML='<option value="">'+all+'</option>'}
+fillSel($('fcArea'),'Todos los sistemas');fillSel($('qArea'),'Todos los sistemas');fillSel($('fcCat'),'Todos los estatus');
+Object.keys(AREAS).forEach(function(k){['fcArea','qArea'].forEach(function(s){var o=document.createElement('option');o.value=k;o.textContent=AREAS[k].n;$(s).appendChild(o)})});
+Object.keys(CATS).forEach(function(k){var o=document.createElement('option');o.value=k;o.textContent=CATS[k].l;$('fcCat').appendChild(o)});
+var FC={list:[],i:0};
+function fcBuild(sh){var a=$('fcArea').value,c=$('fcCat').value;
+  var l=P.filter(function(p){return(!a||p.ar===a)&&(!c||p.ca===c)});
+  l.sort(function(x,y){return x.n.localeCompare(y.n,'es')});FC.list=sh?shuffle(l):l;FC.i=0;FC.initialized=true;fcRender()}
+function fcRender(){if(!FC.initialized){FC.initialized=true;fcBuild(false);return}if(!FC.list.length){$('fcNum').textContent='0 / 0';$('fcName').textContent='Sin fichas para estos filtros';$('fcAl').textContent='Selecciona otro sistema o clasificación.';$('fcTags').innerHTML='';$('fcBack').textContent='No hay fichas en esta combinación.';$('fcBar').style.width='0%';$('fcPrev').disabled=$('fcNext').disabled=$('fcKnow').disabled=true;return}$('fcKnow').disabled=false;
+  var p=FC.list[FC.i];$('flash').classList.remove('flip');
+  $('fcNum').textContent=(FC.i+1)+' / '+FC.list.length;$('fcName').textContent=p.n;$('fcAl').textContent=p.al||'';
+  $('fcTags').innerHTML=catTag(p);
+  $('fcBack').innerHTML='<h5 class="hint" style="margin:0">PARA QUÉ SE USA</h5><p style="margin:0 0 6px;font-size:17px"><b>'+esc(p.u)+'</b></p>'+
+   '<h5 class="hint" style="margin:0">CÓMO FUNCIONA</h5><p style="margin:0 0 6px">'+esc(p.c)+'</p><h5 class="hint" style="margin:0">MARCA / VÍA</h5><p style="margin:0 0 6px">'+esc(p.m)+'</p><p class="alert" style="margin:0;font-size:13px">'+esc(p.a)+'</p>';
+  $('fcBar').style.width=((FC.i+1)/FC.list.length*100)+'%';
+  $('fcKnow').textContent=S.known[p.id]?'✓ Dominado':'✓ Lo domino';$('fcKnow').classList.toggle('ghost',!!S.known[p.id]);
+  $('fcPrev').disabled=FC.i===0;$('fcNext').disabled=FC.i===FC.list.length-1}
+$('flash').onclick=function(){this.classList.toggle('flip');this.setAttribute('aria-pressed',String(this.classList.contains('flip')))};$('flash').onkeydown=function(e){if(e.key==='Enter'||e.key===' '){e.preventDefault();this.click()}};
+$('fcPrev').onclick=function(){if(FC.i>0){FC.i--;fcRender()}};
+$('fcNext').onclick=function(){if(FC.i<FC.list.length-1){FC.i++;fcRender()}};
+$('fcKnow').onclick=function(){var p=FC.list[FC.i];if(!p)return;if(!S.known[p.id]){S.known[p.id]=1;save()}if(FC.i<FC.list.length-1)FC.i++;fcRender();renderLib()};
+$('fcArea').onchange=$('fcCat').onchange=function(){fcBuild(false)};
+$('fcShuffle').onclick=function(){fcBuild(true)};
+
+// ---------- quiz ----------
+var Q={qs:[],i:0,ok:0,wrong:[]};
+$('qName').value=S.name;
+var STAT_OPTS=Object.keys(CATS).map(function(k){return CATS[k].l});
+function mkQ(p,type,pool){
+  var others=shuffle(pool.filter(function(x){return x.id!==p.id&&x.u!==p.u&&x.n!==p.n}));
+  if(type==='uso')return{p:p,text:'¿Para qué se usa <b>'+esc(p.n)+'</b>?',opts:shuffle([p.u].concat(others.slice(0,3).map(function(x){return x.u}))),ans:p.u};
+  if(type==='nombre')return{p:p,text:'¿Qué péptido se usa para: <i>'+esc(p.u)+'</i>',opts:shuffle([p.n].concat(others.slice(0,3).map(function(x){return x.n}))),ans:p.n};
+  return{p:p,text:'Según la clasificación de la fuente, ¿cuál es el estatus de <b>'+esc(p.n)+'</b>?',opts:STAT_OPTS.slice(),ans:CATS[p.ca].l};
+}
+$('qGo').onclick=function(){S.name=$('qName').value.trim();save();
+  var a=$('qArea').value,t=$('qType').value;var pool=P.filter(function(p){return !a||p.ar===a});
+  var all=P; var pick=shuffle(pool).slice(0,Math.min(10,pool.length));
+  Q={qs:pick.map(function(p,i){var ty=t==='mix'?['uso','nombre','estatus'][i%3]:t;return mkQ(p,ty,pool.length>=4?pool:all)}),i:0,ok:0,wrong:[],area:a};
+  $('qStart').classList.add('hidden');$('qEnd').classList.add('hidden');$('qRun').classList.remove('hidden');qRender()};
+function qRender(){var q=Q.qs[Q.i];$('qNum').textContent='Pregunta '+(Q.i+1)+' de '+Q.qs.length;$('qScore').textContent=Q.ok+' correctas';
+  $('qBar').style.width=(Q.i/Q.qs.length*100)+'%';$('qText').innerHTML=q.text;$('qFb').classList.add('hidden');$('qNext').classList.add('hidden');
+  $('qOpts').innerHTML=q.opts.map(function(o,i){return '<button class="opt" data-i="'+i+'">'+esc(o)+'</button>'}).join('');
+  Array.prototype.forEach.call($('qOpts').children,function(b){b.onclick=function(){qAnswer(b)}})}
+function qAnswer(b){var q=Q.qs[Q.i];var pick=q.opts[+b.dataset.i];var right=pick===q.ans;
+  Array.prototype.forEach.call($('qOpts').children,function(x){x.disabled=true;if(q.opts[+x.dataset.i]===q.ans)x.classList.add('ok')});
+  if(right)Q.ok++;else{b.classList.add('bad');Q.wrong.push(q.p.id)}
+  $('qFb').innerHTML=(right?'<b>¡Correcto!</b> ':'<b>Respuesta: '+esc(q.ans)+'</b><br>')+esc(q.p.n)+' — '+esc(q.p.c)+' <a href="#p-'+q.p.sl+'">Ver ficha</a>';$('qFb').classList.remove('hidden');
+  $('qNext').textContent=Q.i===Q.qs.length-1?'Ver resultado':'Siguiente';$('qNext').classList.remove('hidden');$('qScore').textContent=Q.ok+' correctas'}
+$('qNext').onclick=function(){if(Q.i<Q.qs.length-1){Q.i++;qRender()}else qFinish()};
+function qFinish(){var pct=Math.round(Q.ok/Q.qs.length*100);
+  S.hist.unshift({d:new Date().toISOString(),n:S.name||'—',a:Q.area?AREAS[Q.area].n:'Todos',s:Q.ok,t:Q.qs.length});S.hist=S.hist.slice(0,50);save();
+  $('qRun').classList.add('hidden');$('qEnd').classList.remove('hidden');$('qFinal').textContent=Q.ok+'/'+Q.qs.length;
+  $('qMsg').textContent=pct>=90?'¡Excelente! Dominas este tema.':pct>=70?'Bien. Repasa las falladas.':'Sigue practicando con las flashcards.';
+  $('qReview').classList.toggle('hidden',!Q.wrong.length)}
+$('qAgain').onclick=function(){$('qEnd').classList.add('hidden');$('qStart').classList.remove('hidden')};
+$('qReview').onclick=function(){FC.list=Q.wrong.map(byId);FC.i=0;FC.initialized=true;go('flashcards');};
+
+// ---------- progress ----------
+function renderProg(){var k=Object.keys(S.known).length;var best=S.hist.reduce(function(m,h){return Math.max(m,Math.round(h.s/h.t*100))},0);
+  $('pStats').innerHTML=[[k+'/'+P.length,'dominados'],[S.hist.length,'quizzes tomados'],[S.hist.length?best+'%':'—','mejor resultado']].map(function(s){return '<div class="stat"><b>'+s[0]+'</b><span>'+s[1]+'</span></div>'}).join('');
+  $('pAreas').innerHTML=Object.keys(AREAS).map(function(a){var tot=cA[a],d=P.filter(function(p){return p.ar===a&&S.known[p.id]}).length;
+    return '<div style="margin:8px 0"><div class="row" style="justify-content:space-between"><span>'+esc(AREAS[a].n)+'</span><span class="hint">'+d+'/'+tot+'</span></div><div class="prog" style="margin:4px 0"><i style="width:'+(d/tot*100)+'%"></i></div></div>'}).join('');
+  $('pHist').innerHTML=S.hist.length?'<table class="hist"><tr><th>Fecha</th><th>Nombre</th><th>Tema</th><th>Puntos</th></tr>'+S.hist.map(function(h){return '<tr><td>'+esc(new Date(h.d).toLocaleDateString('es-PR'))+'</td><td>'+esc(h.n)+'</td><td>'+esc(h.a)+'</td><td>'+h.s+'/'+h.t+'</td></tr>'}).join('')+'</table>':'<p class="hint">Aún no has tomado quizzes.</p>'}
+var armed=false;$('pReset').onclick=function(){var b=this;if(!armed){armed=true;b.textContent='Toca otra vez para confirmar';setTimeout(function(){armed=false;b.textContent='Borrar mi progreso'},4000);return}
+  armed=false;b.textContent='Borrar mi progreso';S={known:{},hist:[],name:S.name};save();renderProg();renderLib()};
+
+$('heroLearn').onclick=function(){go('flashcards')};
+renderLib();
+route();
+document.documentElement.dataset.appReady='true';
+})();
+

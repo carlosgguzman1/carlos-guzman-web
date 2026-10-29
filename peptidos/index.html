@@ -1,0 +1,349 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Carlos Guzmán · Péptidos</title>
+<meta name="description" content="Guía educativa de Carlos Guzmán con 152 fichas, cuerpo 3D interactivo, flashcards y preguntas para aprender sobre péptidos.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#ffffff;--panel:#ffffff;--soft:#f6f9f8;--ink:#13221e;--muted:#5b6b66;--line:#e6ecea;
+  --brand:#0f6b5c;--brand-2:#0b4f44;--brand-soft:#e9f4f1;--accent:#d2672a;
+  color-scheme:light;
+  --fda:#0f6b5c;--ens:#2d5fa8;--well:#b5651d;--cos:#9c3f7a;
+  --alta:#0f6b5c;--mod:#4f7d2a;--baja:#b0452f;
+  --shadow:0 1px 2px rgba(19,34,30,.04),0 8px 24px rgba(19,34,30,.06);
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--ink);font-family:Inter,system-ui,sans-serif;font-size:15px;line-height:1.5}
+a{color:var(--brand)}
+button{font:inherit;cursor:pointer}
+button:focus-visible,select:focus-visible,input:focus-visible,.hot:focus-visible{outline:2px solid var(--brand);outline-offset:2px}
+.wrap{max-width:1180px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:30;background:var(--bg)}
+header.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;background:color-mix(in srgb,var(--bg) 88%,transparent);backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
+.topin{display:flex;align-items:center;gap:12px;height:60px}
+.logo{display:flex;align-items:center;gap:10px;font-weight:700}
+.logo .mark{width:34px;height:34px;border-radius:10px;background:var(--brand);color:#fff;display:grid;place-items:center;font-family:Fraunces,serif;font-size:19px}
+.logo small{display:block;font-weight:500;color:var(--muted);font-size:12px;line-height:1}
+nav.tabs{margin-left:auto;display:flex;gap:4px;overflow-x:auto}
+nav.tabs button{border:0;background:transparent;color:var(--muted);padding:8px 12px;border-radius:999px;font-weight:600;white-space:nowrap}
+nav.tabs button.on{background:var(--brand);color:#fff}
+.heroband{background:linear-gradient(180deg,#ffffff 0%,var(--soft) 100%);border-bottom:1px solid var(--line)}
+.hero{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.05fr);grid-template-areas:'intro stage' 'extra stage';grid-template-rows:auto 1fr;column-gap:36px;row-gap:4px;align-items:start;padding-block:36px 28px}
+.hintro{grid-area:intro;align-self:end}.hextra{grid-area:extra}.stage{grid-area:stage}
+@media(max-width:900px){.hero{grid-template-columns:minmax(0,1fr);grid-template-areas:'intro' 'stage' 'extra';grid-template-rows:auto;row-gap:18px;padding-block:22px 18px}}
+.hero .eyebrow{display:block;margin-bottom:10px}
+.hero h1{font-family:Fraunces,serif;font-size:clamp(32px,5vw,54px);line-height:1.02;margin:0 0 14px;letter-spacing:-.015em;text-wrap:balance}
+.hero p{color:var(--muted);max-width:52ch;margin:0;font-size:16px}
+.hero .chips{margin-top:16px}
+.stage{position:relative;height:560px;border-radius:24px;background:radial-gradient(120% 80% at 50% 30%,#ffffff 0%,#f1f7f5 60%,#e8f2ef 100%);border:1px solid var(--line);overflow:hidden;box-shadow:var(--shadow)}
+@media(max-width:900px){.stage{height:440px}}
+@media(max-width:520px){.stage{height:400px}}
+#stageCanvas{position:absolute;inset:0}
+#stageCanvas canvas{display:block;width:100%!important;height:100%!important;cursor:grab}
+#stageCanvas canvas:active{cursor:grabbing}
+#stageLabels{position:absolute;inset:0;pointer-events:none}
+.blabel{pointer-events:auto;position:absolute;left:0;top:0;display:flex;align-items:center;gap:0;border:0;background:none;padding:0;font:inherit;cursor:pointer;opacity:0;transition:opacity .25s}
+.stage.ready .blabel{opacity:1}
+.blabel i{display:block;width:16px;height:1.5px;background:var(--brand);opacity:.55}
+.blabel span{background:rgba(255,255,255,.92);border:1px solid var(--line);border-radius:999px;padding:4px 9px;font-size:12px;font-weight:600;color:var(--ink);white-space:nowrap;box-shadow:0 2px 10px rgba(19,34,30,.08);backdrop-filter:blur(4px)}
+.blabel em{font-style:normal;font-size:10.5px;font-weight:700;color:var(--muted);margin-left:-26px;display:none}
+.blabel:not(.r){flex-direction:row-reverse}
+.blabel:hover span,.blabel.hov span{border-color:var(--brand);color:var(--brand)}
+.blabel.on span{background:var(--accent);border-color:var(--accent);color:#fff}
+.blabel.on i{background:var(--accent);opacity:1}
+@media(max-width:520px){.blabel span{font-size:11px;padding:3px 7px}.blabel i{width:10px}}
+.stagehint{position:absolute;left:16px;bottom:14px;font-size:12px;color:var(--muted);display:flex;gap:6px;align-items:center;background:rgba(255,255,255,.85);padding:5px 10px;border-radius:999px;border:1px solid var(--line)}
+.stagetag{position:absolute;right:16px;top:14px;font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--brand)}
+.stage.no3d #stageCanvas,.stage.no3d #stageLabels,.stage.no3d .stagehint{display:none}
+.stage.no3d{height:auto;padding:20px}
+.stage.no3d::after{content:"Usa los botones de sistemas para filtrar.";color:var(--muted);font-size:14px}
+.stats{display:flex;gap:10px;flex-wrap:wrap;margin-top:16px}
+.stat{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:8px 14px}
+.stat b{font-size:18px}.stat span{color:var(--muted);font-size:12px;display:block}
+.layout{display:grid;grid-template-columns:270px 1fr;gap:24px;margin:28px 0 60px}
+@media(max-width:860px){.layout{grid-template-columns:1fr}}
+.side{position:sticky;top:76px;align-self:start}
+@media(max-width:860px){.side{position:static}}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:16px;box-shadow:var(--shadow)}
+.body{padding:14px}
+.body h3{margin:0 0 8px;font-size:13px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted)}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{border:1px solid var(--line);background:var(--panel);color:var(--ink);padding:5px 10px;border-radius:999px;font-size:13px;display:inline-flex;gap:6px;align-items:center}
+.chip.on{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.chip .n{color:var(--muted);font-size:11px}.chip.on .n{color:inherit;opacity:.7}
+.dot{width:8px;height:8px;border-radius:50%;display:inline-block}
+.search{width:100%;padding:12px 14px;border-radius:12px;border:1px solid var(--line);background:var(--panel);color:var(--ink);font:inherit;font-size:16px}
+.toolbar{display:flex;gap:10px;align-items:center;margin-bottom:12px;flex-wrap:wrap}
+.toolbar .search{flex:1;min-width:200px}
+select{padding:11px;border-radius:12px;border:1px solid var(--line);background:var(--panel);color:var(--ink);font:inherit}
+.count{color:var(--muted);font-size:13px;margin-bottom:10px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:12px}
+.pc{text-align:left;padding:14px;border-radius:14px;background:var(--panel);border:1px solid var(--line);color:var(--ink);display:flex;flex-direction:column;gap:6px;transition:.15s;position:relative}
+.pc:hover{border-color:var(--brand);transform:translateY(-1px)}
+.pc h4{margin:0;font-size:16px;padding-right:22px}
+.pc .al{font-size:12px;color:var(--muted)}
+.pc p{margin:0;font-size:13.5px;color:var(--ink)}
+.pc .done{position:absolute;top:12px;right:12px;color:var(--brand);font-weight:700}
+.tags{display:flex;gap:6px;flex-wrap:wrap;margin-top:auto}
+.tag{font-size:11px;font-weight:700;padding:3px 8px;border-radius:999px;color:#fff;letter-spacing:.02em}
+.tag.o{background:transparent;border:1px solid var(--line);color:var(--muted);font-weight:600}
+.t-fda{background:var(--fda)}.t-ensayos{background:var(--ens)}.t-wellness{background:var(--well)}.t-cosmetico{background:var(--cos)}
+.e-fda{color:var(--alta)}.e-alta{color:var(--alta)}.e-moderada{color:var(--mod)}.e-baja{color:var(--baja)}
+.bar{display:inline-flex;gap:2px;vertical-align:middle}.bar i{width:10px;height:6px;border-radius:2px;background:var(--line)}
+.bar.l1 i:nth-child(-n+1),.bar.l2 i:nth-child(-n+2),.bar.l3 i:nth-child(-n+3),.bar.l4 i:nth-child(-n+4){background:currentColor}
+/* modal */
+.ov{position:fixed;inset:0;background:rgba(10,18,16,.5);z-index:50;display:none;align-items:flex-end;justify-content:center}
+.ov.show{display:flex}
+@media(min-width:700px){.ov{align-items:center}}
+.modal{background:var(--panel);width:100%;max-width:680px;max-height:92vh;overflow:auto;border-radius:20px 20px 0 0;padding:22px}
+@media(min-width:700px){.modal{border-radius:20px}}
+.modal h2{font-family:Fraunces,serif;font-size:28px;margin:4px 0 2px}
+.modal .x{float:right;border:0;background:var(--brand-soft);color:var(--brand-2);width:36px;height:36px;border-radius:50%;font-size:18px}
+.sec{border-top:1px solid var(--line);padding:12px 0}
+.sec h5{margin:0 0 4px;font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted)}
+.sec p{margin:0}
+.alert{background:color-mix(in srgb,var(--accent) 12%,var(--panel));border-left:4px solid var(--accent);padding:10px 12px;border-radius:8px}
+.cites{font-size:12.5px;padding-left:18px;margin:0;word-break:break-all}
+.btn{border:0;background:var(--brand);color:#fff;padding:11px 16px;border-radius:12px;font-weight:600}
+.btn.ghost{background:var(--brand-soft);color:var(--brand-2)}
+.btn:disabled{opacity:.4;cursor:default}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+/* flashcards */
+.fc-wrap{max-width:560px;margin:24px auto 60px}
+.flash{perspective:1200px;height:340px;cursor:pointer}
+.flash .in{position:relative;width:100%;height:100%;transition:transform .5s;transform-style:preserve-3d}
+.flash.flip .in{transform:rotateY(180deg)}
+.face{position:absolute;inset:0;backface-visibility:hidden;border-radius:20px;background:var(--panel);border:1px solid var(--line);box-shadow:var(--shadow);padding:24px;display:flex;flex-direction:column;justify-content:center;text-align:center;gap:10px}
+.face.back{transform:rotateY(180deg);text-align:left;justify-content:flex-start;overflow:auto}
+.face h2{font-family:Fraunces,serif;font-size:32px;margin:0}
+.hint{color:var(--muted);font-size:13px}
+.prog{height:6px;background:var(--line);border-radius:6px;overflow:hidden;margin:10px 0}
+.prog i{display:block;height:100%;background:var(--brand);transition:width .3s}
+/* quiz */
+.opt{display:block;width:100%;text-align:left;padding:12px 14px;border-radius:12px;border:1px solid var(--line);background:var(--panel);color:var(--ink);margin:8px 0}
+.opt:hover:not(:disabled){border-color:var(--brand)}
+.opt.ok{background:#e1f3e9;border-color:#2f8f5b;color:#14231f}
+.opt.bad{background:#fbe3dd;border-color:#c0472f;color:#14231f}
+.q{font-family:Fraunces,serif;font-size:22px;margin:6px 0 10px}
+.big{font-family:Fraunces,serif;font-size:56px;margin:0;color:var(--brand)}
+.legend{display:grid;gap:6px;font-size:13px}
+.legend div{display:flex;gap:8px;align-items:flex-start}
+.hidden{display:none!important}
+footer{border-top:1px solid var(--line);color:var(--muted);font-size:12px;padding:18px 0 40px}
+@media(max-width:700px){.topin{flex-wrap:wrap;height:auto;padding-block:8px}nav.tabs{margin-left:0;width:100%;justify-content:space-between}nav.tabs button{padding:7px 10px;font-size:14px}.side{top:0}}
+.fcbtns{display:grid;grid-template-columns:1fr 1.3fr 1fr;gap:8px;margin-top:14px}
+table.hist{width:100%;border-collapse:collapse;font-size:14px}
+table.hist td,table.hist th{padding:8px;border-bottom:1px solid var(--line);text-align:left}
+
+/* ===== detalle ===== */
+.crumbs{display:flex;flex-wrap:wrap;gap:6px;align-items:center;font-size:13px;color:var(--muted);padding-block:18px 6px}
+.crumbs a{color:var(--muted);text-decoration:none}.crumbs a:hover{color:var(--brand)}
+.dgrid{display:grid;grid-template-columns:minmax(0,1fr) 230px;gap:40px;align-items:start;padding-bottom:60px}
+@media(max-width:960px){.dgrid{grid-template-columns:minmax(0,1fr)}.toc{display:none}}
+.dhero{display:grid;grid-template-columns:minmax(0,1fr) 260px;gap:24px;align-items:center;padding-block:8px 22px;border-bottom:1px solid var(--line)}
+@media(max-width:700px){.dhero{grid-template-columns:minmax(0,1fr)}.dhero .art{order:-1;max-width:100%;aspect-ratio:auto;height:140px}}
+.dhero h1{font-family:Fraunces,serif;font-size:clamp(32px,6vw,52px);line-height:1.02;margin:6px 0 4px;letter-spacing:-.015em;text-wrap:balance;overflow-wrap:anywhere}
+.dhero .alias{color:var(--muted);font-size:15px;margin-bottom:12px}
+.eyebrow{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--brand)}
+.art{background:var(--brand-soft);border-radius:18px;padding:10px;aspect-ratio:13/8;max-width:100%}
+.art svg{width:100%;height:100%;display:block}
+.byline{font-size:12.5px;color:var(--muted);margin-top:12px}
+.dsec{padding-block:26px 6px;scroll-margin-top:90px}
+.dsec h2{font-family:Fraunces,serif;font-size:26px;margin:0 0 12px;text-wrap:balance}
+.dsec p{margin:0 0 12px;max-width:68ch;font-size:16px;line-height:1.65}
+.takeaway{background:var(--panel);border:1px solid var(--line);border-left:5px solid var(--brand);border-radius:14px;padding:16px 18px;margin-top:22px}
+.takeaway .eyebrow{margin-bottom:6px;display:block}
+.takeaway p{margin:0;font-size:16.5px;line-height:1.6;max-width:none}
+.glance{width:100%;border-collapse:collapse;background:var(--panel);border:1px solid var(--line);border-radius:14px;overflow:hidden;font-size:14.5px}
+.glance th{width:34%;text-align:left;vertical-align:top;color:var(--muted);font-weight:600;padding:11px 14px;border-bottom:1px solid var(--line);background:color-mix(in srgb,var(--brand-soft) 45%,var(--panel))}
+.glance td{padding:11px 14px;border-bottom:1px solid var(--line)}
+.glance tr:last-child th,.glance tr:last-child td{border-bottom:0}
+.steps{list-style:none;padding:0;margin:6px 0 0;display:grid;gap:0;counter-reset:st;max-width:68ch}
+.steps li{position:relative;padding:4px 0 18px 44px;counter-increment:st;font-size:15px}
+.steps li::before{content:counter(st);position:absolute;left:0;top:0;width:28px;height:28px;border-radius:50%;background:var(--brand);color:var(--panel);display:grid;place-items:center;font-weight:700;font-size:13px}
+.steps li:not(:last-child)::after{content:"";position:absolute;left:13px;top:30px;bottom:2px;width:2px;background:var(--line)}
+.statcard{display:flex;gap:14px;align-items:center;background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:14px 16px;max-width:520px}
+.statcard .big2{font-family:Fraunces,serif;font-size:22px;line-height:1.1}
+.statcard .ic{width:44px;height:44px;border-radius:12px;display:grid;place-items:center;color:#fff;font-weight:800;flex:none}
+.tscroll{overflow-x:auto;border:1px solid var(--line);border-radius:14px;background:var(--panel)}
+.etab{width:100%;border-collapse:collapse;font-size:14px;min-width:520px}
+.etab th{text-align:left;font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);padding:10px 14px;border-bottom:1px solid var(--line)}
+.etab td{padding:12px 14px;border-bottom:1px solid var(--line);vertical-align:top}
+.etab tr:last-child td{border-bottom:0}
+.etab td:first-child{font-weight:600}
+.meter{display:flex;gap:16px;align-items:center;margin-top:16px;background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:14px 16px;flex-wrap:wrap}
+.meter .segs{display:flex;gap:4px}.meter .segs i{width:34px;height:10px;border-radius:3px;background:var(--line)}
+.meter .lbl{font-weight:700}
+.meter p{margin:0;font-size:14px;color:var(--muted);flex:1;min-width:200px}
+.safe{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media(max-width:700px){.safe{grid-template-columns:1fr}}
+.safe>div{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:14px 16px;min-width:0}
+.safe h4{margin:0 0 8px;font-size:14px}
+.safe ul{margin:0;padding-left:18px;display:grid;gap:5px;font-size:14.5px}
+.safe .warn{border-color:color-mix(in srgb,var(--baja) 45%,var(--line))}
+.safe .warn h4{color:var(--baja)}
+.dosebox{background:var(--panel);border:1px dashed color-mix(in srgb,var(--brand) 50%,var(--line));border-radius:14px;padding:14px 16px;font-size:15px;max-width:68ch}
+.staff{background:var(--brand);color:#fff;border-radius:18px;padding:20px 22px}
+.staff h2{color:#fff}
+.staff ul{list-style:none;margin:0;padding:0;display:grid;gap:10px}
+.staff li{display:flex;gap:10px;font-size:15.5px;line-height:1.5}
+.staff li::before{content:"✓";flex:none;width:22px;height:22px;border-radius:50%;background:rgba(255,255,255,.2);display:grid;place-items:center;font-size:12px;font-weight:700}
+.related{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px}
+.related a{display:block;text-decoration:none;color:var(--ink);background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:12px 14px}
+.related a:hover{border-color:var(--brand)}
+.related b{display:block;font-size:14.5px}.related span{font-size:12.5px;color:var(--muted)}
+.cites{font-size:13px;padding-left:20px;margin:0;display:grid;gap:4px;overflow-wrap:anywhere}
+.pnav{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:30px}
+.pnav a{display:block;padding:14px 16px;border:1px solid var(--line);border-radius:14px;text-decoration:none;color:var(--ink);background:var(--panel)}
+.pnav a span{display:block;font-size:12px;color:var(--muted)}
+.pnav a:last-child{text-align:right}
+.toc{position:sticky;top:calc(env(safe-area-inset-top,0px) + 80px);font-size:13.5px}
+.toc h5{margin:0 0 8px;font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted)}
+.toc a{display:block;padding:6px 10px;border-left:2px solid var(--line);color:var(--muted);text-decoration:none}
+.toc a.on{border-color:var(--brand);color:var(--ink);font-weight:600}
+.toc .btn{width:100%;margin-top:16px}
+.mkm{display:none;margin-top:14px}
+@media(max-width:960px){.mkm{display:inline-block}}
+.backlink{background:none;border:0;color:var(--brand);font-weight:600;padding:0}
+</style>
+<meta name="theme-color" content="#f5faf9"><link rel="canonical" href="https://carlos-guzman-peptides.vercel.app/"><meta property="og:title" content="Carlos Guzmán · Péptidos"><meta property="og:description" content="Una guía educativa para explorar usos estudiados, mecanismos y evidencia."><meta property="og:type" content="website"><link rel="icon" href="favicon.svg" type="image/svg+xml"><link rel="stylesheet" href="personal.css"></head>
+<body>
+<header class="top"><div class="wrap topin">
+  <div class="logo"><div class="mark">CG</div><div>Carlos Guzmán<small>Péptidos · Guía educativa</small></div></div>
+  <nav class="tabs" id="tabs">
+    <button data-v="lib" class="on">Biblioteca</button>
+    <button data-v="fc">Flashcards</button>
+    <button data-v="quiz">Quiz</button>
+    <button data-v="prog">Mi progreso</button>
+  </nav>
+</div></header>
+
+<!-- BIBLIOTECA -->
+<main id="v-lib">
+<div class="heroband"><section class="wrap hero">
+  <div class="hintro">
+    <span class="eyebrow">Carlos Guzmán · Péptidos</span>
+    <h1>Para qué se usa cada péptido.</h1>
+    <p>Explora 152 fichas para conocer usos estudiados, mecanismos y evidencia. Gira el cuerpo, elige un sistema y aprende a tu ritmo.</p>
+    <p class="educational-note"><strong>Solo para propósitos educativos.</strong> No ofrece diagnósticos, prescripciones ni recomendaciones de tratamiento personal.</p>
+    <div class="hero-actions"><a class="btn" href="#contenido">Explorar biblioteca <span>↗</span></a><button class="btn ghost" id="heroLearn">Aprender con flashcards</button></div>
+  </div>
+  <div class="stage" id="stage" aria-label="Modelo 3D del cuerpo: toca un sistema para filtrar">
+    <div id="stageCanvas"></div>
+    <div id="stageLabels"></div>
+    <span class="stagetag">Explora el cuerpo</span><button id="motionToggle" class="motion-toggle" aria-pressed="true" aria-label="Pausar movimiento automático">Pausar ↻</button>
+    <span class="stagehint">↻ Arrastra para girar · toca un sistema</span>
+  </div>
+  <div class="hextra">
+    <div class="stats" id="stats"></div>
+    <div class="chips" id="areaChips"></div>
+  </div>
+</section></div>
+<section class="wrap layout" id="contenido">
+  <aside class="side">
+    <div class="card body">
+      <h3>Clasificación de la fuente</h3><div class="chips" id="catChips"></div>
+      <h3 style="margin-top:14px">Evidencia reportada</h3><div class="chips" id="evChips"></div>
+    </div>
+    <div class="card body" style="margin-top:12px">
+      <h3>Cómo leer las fichas</h3>
+      <div class="legend">
+        <div><span class="tag t-fda">FDA</span> Aprobación reportada*</div>
+        <div><span class="tag t-ensayos">Ensayos</span> En investigación clínica</div>
+        <div><span class="tag t-wellness">Experimental</span> Compuesto experimental</div>
+        <div><span class="tag t-cosmetico">Cosmético</span> Ingrediente tópico, no medicamento</div>
+      </div>
+      <p class="hint legend-note">*La clasificación proviene de la fuente original. La aprobación aplica a productos e indicaciones específicos. Revisión clínica integral pendiente.</p>
+    </div>
+  </aside>
+  <div>
+    <div class="toolbar">
+      <input class="search" id="q" type="search" aria-label="Buscar péptidos" placeholder="Buscar: semaglutide, Ozempic, osteoporosis, GLP-1…" autocomplete="off">
+      <select id="sort" aria-label="Ordenar fichas"><option value="az">A → Z</option><option value="ev">Más evidencia</option><option value="ar">Por sistema</option></select>
+    </div>
+    <div class="count" id="count" role="status" aria-live="polite"></div>
+    <div class="grid" id="grid"></div>
+  </div>
+</section>
+</main>
+
+<main id="v-det" class="hidden"><div class="wrap" id="det"></div></main>
+
+<!-- FLASHCARDS -->
+<main id="v-fc" class="hidden"><div class="wrap fc-wrap">
+  <h2 style="font-family:Fraunces,serif;margin:0">Flashcards</h2>
+  <p class="hint">Mira el nombre, piensa para qué se usa y toca la tarjeta para verificar. Usa los filtros para practicar por grupo.</p>
+  <div class="row" style="margin:10px 0">
+    <select id="fcArea" aria-label="Sistema de flashcards"></select>
+    <select id="fcCat" aria-label="Clasificación de flashcards"></select>
+    <button class="btn ghost" id="fcShuffle">Barajar</button>
+  </div>
+  <div class="prog"><i id="fcBar"></i></div>
+  <div class="flash" id="flash" role="button" tabindex="0" aria-label="Voltear tarjeta" aria-pressed="false"><div class="in">
+    <div class="face front"><div class="hint" id="fcNum"></div><h2 id="fcName"></h2><div class="hint" id="fcAl"></div><div class="tags" style="justify-content:center;margin:0" id="fcTags"></div><div class="hint" style="margin-top:14px">Toca para voltear</div></div>
+    <div class="face back" id="fcBack"></div>
+  </div></div>
+  <div class="fcbtns">
+    <button class="btn ghost" id="fcPrev" aria-label="Tarjeta anterior">←</button>
+    <button class="btn" id="fcKnow">✓ Lo domino</button>
+    <button class="btn ghost" id="fcNext" aria-label="Tarjeta siguiente">→</button>
+  </div>
+</div></main>
+
+<!-- QUIZ -->
+<main id="v-quiz" class="hidden"><div class="wrap fc-wrap">
+  <div id="qStart" class="card body" style="padding:22px">
+    <h2 style="font-family:Fraunces,serif;margin:0 0 6px">Quiz de péptidos</h2>
+    <p class="hint">10 preguntas sobre el contenido de esta guía. El resultado se guarda solo en este navegador; no es una certificación clínica.</p>
+    <label class="hint" for="qName">Tu nombre (opcional)</label>
+    <input class="search" id="qName" placeholder="Ej. María R." style="margin:4px 0 12px">
+    <label class="hint" for="qArea">Tema</label>
+    <select id="qArea" style="width:100%;margin:4px 0 12px"></select>
+    <label class="hint" for="qType">Tipo de preguntas</label>
+    <select id="qType" style="width:100%;margin:4px 0 16px">
+      <option value="mix">Mixto</option><option value="uso">¿Para qué se usa?</option><option value="nombre">¿Qué péptido es?</option><option value="estatus">Estatus regulatorio</option>
+    </select>
+    <button class="btn" id="qGo" style="width:100%">Comenzar</button>
+  </div>
+  <div id="qRun" class="hidden">
+    <div class="row" style="justify-content:space-between"><span class="hint" id="qNum"></span><span class="hint" id="qScore"></span></div>
+    <div class="prog"><i id="qBar"></i></div>
+    <div class="q" id="qText"></div>
+    <div id="qOpts"></div>
+    <div id="qFb" class="alert hidden" style="margin-top:8px"></div>
+    <button class="btn hidden" id="qNext" style="width:100%;margin-top:12px">Siguiente</button>
+  </div>
+  <div id="qEnd" class="hidden card body" style="text-align:center;padding:28px">
+    <p class="hint">Resultado</p><p class="big" id="qFinal"></p><p id="qMsg"></p>
+    <div class="row" style="justify-content:center;margin-top:10px"><button class="btn" id="qAgain">Otro quiz</button><button class="btn ghost" id="qReview">Repasar falladas</button></div>
+  </div>
+</div></main>
+
+<!-- PROGRESO -->
+<main id="v-prog" class="hidden"><div class="wrap fc-wrap" style="max-width:760px">
+  <h2 style="font-family:Fraunces,serif;margin:0 0 4px">Mi progreso</h2>
+  <p class="hint">Se guarda en este navegador. Úsalo como referencia personal de estudio.</p>
+  <div class="stats" id="pStats"></div>
+  <div class="card body" style="margin-top:16px"><h3>Dominio por sistema</h3><div id="pAreas"></div></div>
+  <div class="card body" style="margin-top:16px"><h3>Historial de quizzes</h3><div id="pHist"></div></div>
+  <button class="btn ghost" id="pReset" style="margin-top:16px">Borrar mi progreso</button>
+</div></main>
+
+
+<footer><div class="wrap">
+  <div class="footer-top"><strong>Carlos Guzmán <span>· Péptidos</span></strong><span>Aprende. Explora. Comprende.</span></div>
+  <p>Solo para propósitos educativos. No sustituye la evaluación de un profesional de salud. Contenido basado en la biblioteca de Superpower y el archivo aportado; sin afiliación con Superpower. La revisión clínica integral de las afirmaciones y referencias sigue pendiente.</p>
+  <div class="footer-bottom"><span>152 fichas · Progreso guardado en tu navegador</span><span>Edición 3.0 · Carlos Guzmán</span></div>
+</div></footer>
+
+<script src="vendor/three.min.js"></script>
+<script src="data.js"></script>
+<script src="app.js"></script>
+<script src="body3d.js"></script>
+</body>
+</html>
+
